@@ -4,7 +4,7 @@ Current state of the compbio-tutor project, kept current after each phase.
 
 ## Status
 - Phase 1 (docs, prior art, data availability): done. See `docs/research.md`.
-- Phase 2 (design): `docs/design.md` drafted, **waiting for Ethan's approval**.
+- Phase 2 (design): approved 2026-10-22, revised for Claude Code + R. Open: R in all tracks or track 3 only.
 - Phases 3-7: not started.
 
 ## Where things are
@@ -16,5 +16,11 @@ Current state of the compbio-tutor project, kept current after each phase.
   QTL Viewer files are not redistributed until their terms are known.
 - Papers are not openly licensed: paraphrase and cite, regenerate any figures from data.
 
-## Open questions (see research.md §6)
-GitHub repo, licenses, QTL Viewer terms, network access for the data build.
+- Pilot surface: Claude Code. Students write R; graders stay Python (stdlib).
+- Licenses: MIT (code), CC BY 4.0 (lesson text).
+- Repo: var-flotsam/compbio-tutor, which Ethan creates (sessions can't create repos).
+
+## Open
+- R in every track vs. track 3 only (decision card posted; draft assumes every track).
+- Ethan to widen the cloud environment's network access (JAX, Dryad, MGI, Ensembl hosts).
+- QTL Viewer redistribution terms (not needed if Dryad + MPD suffice).

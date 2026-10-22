@@ -1,7 +1,9 @@
 # compbio-tutor design
 
-Status: **draft for Ethan's approval** (Phase 2). Nothing past this document is
-built yet. Research behind these choices is in [research.md](research.md).
+Status: **approved by Ethan 2026-10-22**, with these answers: Claude Code is the
+pilot surface, students should learn R, MIT for code and CC BY 4.0 for lesson text.
+Revised the same day for those answers. Whether R is used in every track or only in
+track 3 is still open; this draft assumes R in every track. Research behind these choices is in [research.md](research.md).
 
 ## Contents
 1. Goals and non-goals
@@ -33,29 +35,33 @@ built yet. Research behind these choices is in [research.md](research.md).
 
 **Non-goals**
 - Not a general bioinformatics assistant or a research pipeline.
-- No live data fetching during lessons (offline, bundled data only).
+- No live fetching of web pages during lessons. The one download is a versioned
+  capstone data pack from this repo's GitHub Releases, verified by SHA-256.
 - No grading of free-form essays or code style; we grade answers and outputs.
 - No student accounts, servers or dashboards.
 
 ## 2. Who uses it, and where
 
-**Students:** ages roughly 15-20, some Python helpful but not required for tracks
-1-2 (the skill can teach the needed Python in passing). Track 3 assumes tracks 1-2
-or equivalent.
+**Students:** ages roughly 15-20. They write **R** (no prior coding assumed in
+track 1; the skill teaches the needed R in passing). Track 3 assumes tracks 1-2 or
+equivalent.
 
-**Teachers:** run a pilot with the teacher guide; no coding needed to install.
+**Teachers:** run a pilot with the teacher guide. Setup is a script that checks R,
+installs packages, and installs the skill.
 
-**Surfaces.** The docs show three runtimes with different limits (research.md §1).
-The skill is built for the strictest one so it works on all three:
+**Surface: Claude Code.** Students work in a project folder that contains the skill
+in `.claude/skills/compbio-tutor/`, with full network access and R installed
+locally. Claude can run the student's R code and the graders.
 
-| Constraint | Design response |
+| Need | Design response |
 |---|---|
-| API runtime has no network and no installs | Graders use **only the Python standard library**; all lesson data ships in `assets/` |
-| claude.ai and API reject non-spec frontmatter | `SKILL.md` uses only `name`, `description`, `license`, `compatibility`, `metadata` |
-| Skills do not sync between surfaces | Release a zip for claude.ai upload; Claude Code users copy the folder to `.claude/skills/` |
+| Students learn R | Starter code, examples and hints are in R. Track 1 uses base R plus Bioconductor `Biostrings`, track 2 uses data frames, and track 3 uses R/qtl2. |
+| Reproducible R setup | `renv.lock` pins R packages; `setup/check_setup.R` reports what is missing in plain language |
+| Graders independent of the student's language | Graders are Python (stdlib only) and check answers and output files, not code. Claude Code runs them with `uv run`. |
+| Capstone data too big to bundle | `tutor.py fetch-data` downloads a versioned data pack from GitHub Releases once and verifies its SHA-256 |
+| Portability later | `SKILL.md` frontmatter still uses only the six spec fields, so a claude.ai version stays possible (tracks 1-2 only) |
 
-Minimum Python: **3.11** (for `tomllib`). To verify against each runtime in Phase 3;
-if a runtime is older, problem files switch from TOML to JSON.
+Minimum versions: Python 3.11 (graders, via uv) and R 4.3 or later with R/qtl2.
 
 ## 3. Repository layout
 
@@ -63,6 +69,8 @@ if a runtime is older, problem files switch from TOML to JSON.
 compbio-tutor/                    repo root
 ├── skills/compbio-tutor/         the shippable skill (name matches folder)
 ├── prep/                         data build pipeline, not shipped (R/qtl2 + Python)
+├── setup/                        check_setup.R, install script for students and teachers
+├── renv.lock                     pinned R packages for students
 ├── tests/                        pytest: graders, problem files, skill checks
 ├── evals/                        scripted student conversations, runner, results
 ├── docs/                         design.md, research.md, HANDOFF.md, teacher-guide.md
@@ -185,7 +193,7 @@ SKILL.md gives Claude a short loop, with a copyable checklist:
    (`tutor.py list`). Check prerequisites for track 3.
 2. **Set up the problem.** `tutor.py show <id>` prints goal, background, prompt and
    data location. Ask the student to predict or restate the goal first.
-3. **Let them work.** Answer questions about Python syntax and biology concepts
+3. **Let them work.** Answer questions about R syntax and biology concepts
    freely; do not do the problem's computation for them.
 4. **Grade every answer with the script.** `tutor.py grade <id> --answer ...`.
    Never say "correct" or "incorrect" without a grader result.
@@ -227,7 +235,7 @@ Problem text is all original. Ids are stable; titles may change.
 **Track 1: Sequences** (generated data plus one real mouse gene)
 | id | Learning goal | Grader |
 |---|---|---|
-| t1-gc-content | GC content and why it varies | numeric |
+| t1-gc-content | GC content and why it varies (first R: strings, vectors, `table()`) | numeric |
 | t1-revcomp | Strands, 5'→3', reverse complement | sequence (diagnoses reverse-only, complement-only) |
 | t1-transcribe-translate | DNA → RNA → protein with the standard code | sequence |
 | t1-reading-frames | Six reading frames | set |
@@ -244,21 +252,21 @@ optional in Claude Code)
 | t2-what-is-a-snp | Compare founder sequences at a site; alleles and genotypes | exact + choice |
 | t2-genome-builds | Why coordinates differ between GRCm38 and GRCm39 | choice |
 
-**Track 3: Mouse genetics capstone** (Dryad + MPD derived extracts)
+**Track 3: Mouse genetics capstone** (R/qtl2 on the Dryad + MPD data pack; students
+run the real analysis rather than only reading precomputed results)
 | id | Learning goal | Grader |
 |---|---|---|
 | t3-do-founders | The 8 founder strains (letters A-H) and why they matter | exact matching |
 | t3-phenotype | Insulin secretion traits; distribution, log scale, sex difference | numeric |
 | t3-genotype-probs | Reading founder probabilities for one mouse at one marker | exact + numeric |
-| t3-single-marker-lod | Compute a LOD score at one marker by regression on founder dosages | numeric (vs. R/qtl2 value) |
-| t3-genome-scan | Read a scan: peak chromosome, position, LOD vs. permutation threshold | interval + numeric |
+| t3-single-marker-lod | Compute a LOD score at one marker by hand with `lm()`, then check it against `scan1()` | numeric (vs. R/qtl2 value) |
+| t3-genome-scan | Run `scan1()` with kinship and covariates, run permutations, and read the scan: peak chromosome, position, LOD vs. threshold | interval + numeric |
 | t3-support-interval | 1.5-LOD drop interval | interval |
 | t3-heatmap | Chromosome heat map across secretion conditions; find a shared hotspot | interval + set |
-| t3-founder-effects | Which founder alleles raise or lower the trait at a peak | set |
+| t3-founder-effects | Use `scan1blup()` and plot founder effects; which founder alleles raise or lower the trait | set |
 | t3-candidate-genes | Genes in the interval, filtered to protein-coding | set |
 | t3-expression-ranking | Narrow candidates with islet expression (cis-eQTL, correlation with trait) | ranking |
 | t3-knockout-test | What the *Hunk*, *Zfp148* and *Ptpn18* experiments showed and did not show | choice |
-| t3-rqtl2-scan (optional) | Run the scan yourself in R/qtl2 (setup guide included) | numeric vs. precomputed |
 
 Which traits and loci appear in track 3 is fixed in Phase 6 after the data is
 checked; the table shows the shape, not final answers.
@@ -279,8 +287,12 @@ checked; the table shows the shape, not final answers.
    genes in chosen intervals, MGI gene rows for those intervals.
 5. Write `ATTRIBUTION.md` with citations and licenses; enforce the 10 MB budget.
 
-Students use these CSVs with plain Python (stdlib `csv`, or pandas if they have
-it). Graders compare to the R/qtl2 outputs with documented tolerances.
+The data pack (target under 200 MB) holds an R/qtl2 cross object with genotype
+probabilities on a thinned marker grid, the chosen phenotypes and covariates, islet
+expression for genes in the chosen intervals, MGI gene rows, and reference results
+(scans, thresholds, BLUPs) that the graders compare against. Because permutations
+and BLUPs involve randomness or fitting, graders use documented tolerances and
+students set a fixed seed.
 
 ## 11. Testing, evals and CI
 
@@ -313,7 +325,9 @@ write a results table into the README.
 
 **CI (GitHub Actions):** on every push and PR: `uv sync`, `ruff check`,
 `ruff format --check`, `mypy`, `pytest`, `skills-ref validate`, and a packaging
-dry run. Evals run on manual dispatch only, because they need an API key secret
+dry run. A second job sets up R with `r-lib/actions` on Linux, macOS and Windows,
+restores `renv.lock`, and runs each track's reference R solution against the
+graders, so a broken R setup or a tolerance drift fails CI. Evals run on manual dispatch only, because they need an API key secret
 and cost money.
 
 ## 12. Documentation
@@ -332,16 +346,15 @@ and cost money.
 | Paper loci differ from what our reduced scans show | Teach from our scans; say where and why they differ |
 | Claude reads explanation files directly | Instructions forbid it; evals measure leakage |
 | Overclaiming disease links | science-claims.md, explanation checklists, forbidden-phrase evals |
-| Students on claude.ai can't run Python locally | Problems accept answers computed anywhere; Claude can also run the student's own code when they paste it |
-| Runtime Python older than 3.11 | Switch problem files to JSON |
+| R setup fails on school computers | `check_setup.R`, renv lockfile, a teacher-guide troubleshooting section, and a test on a clean machine in CI (`r-lib/actions`) |
+| Scans too slow on student laptops | Thinned marker grid, fewer permutations in class (with the full threshold supplied), timing checked in CI |
+| Grader tolerance too tight for different R/BLAS versions | Tolerances set from runs on Linux, macOS and Windows in CI |
 
-## 14. Decisions I need from Ethan
+## 14. Decisions
 
-1. **Approve this design** (or tell me what to change).
-2. **GitHub repo:** create `var-flotsam/compbio-tutor` (or name another) and attach
-   it to the project; until then commits stay local.
-3. **Licenses:** MIT for code, CC BY 4.0 for lesson text?
-4. **Pilot surface:** will students mostly use claude.ai or Claude Code? It
-   changes how much the lessons lean on running code.
-5. **Data build:** for Phase 6, broader network access for the cloud session, or
-   run `prep/` on your computer?
+Settled 2026-10-22: design approved; Claude Code is the pilot surface; students
+learn R; MIT for code, CC BY 4.0 for lesson text; repo `var-flotsam/compbio-tutor`
+(Ethan to create); the cloud environment's network access to be widened for the data
+build.
+
+Still open: R in every track (this draft's assumption) or only in track 3.
