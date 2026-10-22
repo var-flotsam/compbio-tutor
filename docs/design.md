@@ -2,8 +2,8 @@
 
 Status: **approved by Ethan 2026-10-22**, with these answers: Claude Code is the
 pilot surface, students should learn R, MIT for code and CC BY 4.0 for lesson text.
-Revised the same day for those answers. Whether R is used in every track or only in
-track 3 is still open; this draft assumes R in every track. Research behind these choices is in [research.md](research.md).
+Revised the same day for those answers. Students use R in all three tracks
+(Ethan's choice, 2026-10-22). Research behind these choices is in [research.md](research.md).
 
 ## Contents
 1. Goals and non-goals
@@ -357,4 +357,4 @@ learn R; MIT for code, CC BY 4.0 for lesson text; repo `var-flotsam/compbio-tuto
 (Ethan to create); the cloud environment's network access to be widened for the data
 build.
 
-Still open: R in every track (this draft's assumption) or only in track 3.
+Also settled 2026-10-22: students use R in all three tracks.

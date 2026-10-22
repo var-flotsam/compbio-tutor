@@ -1,0 +1,28 @@
+[project]
+name = "compbio-tutor"
+version = "0.1.0"
+description = "A Claude skill that tutors students through computational biology on real public data"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6", "mypy>=1.11"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["skills/compbio-tutor/scripts"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "ANN"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+mypy_path = "skills/compbio-tutor/scripts"
+files = ["skills/compbio-tutor/scripts", "tests"]
