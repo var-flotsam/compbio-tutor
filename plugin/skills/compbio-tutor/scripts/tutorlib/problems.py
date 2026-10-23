@@ -1,8 +1,9 @@
-"""Load and validate problem folders (``problems/<id>/problem.toml``)."""
+"""Load and validate problem folders (``problems/<id>/problem.json``, built from problem.toml)."""
 
 from __future__ import annotations
 
-import tomllib
+import json
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, TypeVar
@@ -13,10 +14,19 @@ from tutorlib.graders import AnswerFormatError, Expected, Verdict
 SKILL_ROOT = Path(__file__).resolve().parents[2]
 PROBLEMS_DIR = SKILL_ROOT / "problems"
 MIN_HINTS = 3
-GRADER_KINDS = frozenset({"numeric", "exact", "sequence", "set", "choice", "interval", "ranking"})
 
 
 T = TypeVar("T")
+
+_GRADERS: dict[str, Callable[..., Verdict]] = {
+    "numeric": graders.grade_numeric,
+    "exact": graders.grade_exact,
+    "sequence": graders.grade_sequence,
+    "set": graders.grade_set,
+    "choice": graders.grade_choice,
+    "interval": graders.grade_interval,
+    "ranking": graders.grade_ranking,
+}
 
 
 class ProblemError(Exception):
@@ -55,23 +65,10 @@ class Problem:
         options = {k: v for k, v in self.grader.items() if k != "kind"}
         kind = self.grader["kind"]
         try:
-            match kind:
-                case "numeric":
-                    return graders.grade_numeric(answer_text, expected, **options)
-                case "exact":
-                    return graders.grade_exact(answer_text, expected, **options)
-                case "sequence":
-                    return graders.grade_sequence(answer_text, expected, **options)
-                case "set":
-                    return graders.grade_set(answer_text, expected, **options)
-                case "choice":
-                    return graders.grade_choice(answer_text, expected, **options)
-                case "interval":
-                    return graders.grade_interval(answer_text, expected, **options)
-                case "ranking":
-                    return graders.grade_ranking(answer_text, expected, **options)
-                case _:
-                    raise ProblemError(f"{self.id}: unknown grader kind {kind!r}")
+            grader = _GRADERS.get(kind)
+            if grader is None:
+                raise ProblemError(f"{self.id}: unknown grader kind {kind!r}")
+            return grader(answer_text, expected, **options)
         except AnswerFormatError as err:
             return Verdict("invalid", "format", str(err))
 
@@ -86,10 +83,10 @@ def _require(data: dict[str, Any], key: str, kind: type[T], pid: str) -> T:
 
 
 def load_problem(folder: Path) -> Problem:
-    path = folder / "problem.toml"
+    path = folder / "problem.json"
     try:
-        data = tomllib.loads(path.read_text(encoding="utf-8"))
-    except (OSError, tomllib.TOMLDecodeError) as err:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as err:
         raise ProblemError(f"{path}: {err}") from err
     pid = _require(data, "id", str, folder.name)
     if pid != folder.name:
@@ -98,8 +95,8 @@ def load_problem(folder: Path) -> Problem:
     if len(hints) < MIN_HINTS:
         raise ProblemError(f"{pid}: needs at least {MIN_HINTS} hints, has {len(hints)}")
     grader = _require(data, "grader", dict, pid)
-    if grader.get("kind") not in GRADER_KINDS:
-        raise ProblemError(f"{pid}: grader.kind must be one of {sorted(GRADER_KINDS)}")
+    if grader.get("kind") not in _GRADERS:
+        raise ProblemError(f"{pid}: grader.kind must be one of {sorted(_GRADERS)}")
     dataset = _require(data, "dataset", str, pid)
     answer = _require(data, "answer", str, pid)
     if dataset not in answers.DATASETS:
@@ -127,6 +124,6 @@ def load_problem(folder: Path) -> Problem:
 
 
 def load_all(root: Path = PROBLEMS_DIR) -> dict[str, Problem]:
-    loaded = [load_problem(p) for p in root.iterdir() if (p / "problem.toml").is_file()]
+    loaded = [load_problem(p) for p in root.iterdir() if (p / "problem.json").is_file()]
     loaded.sort(key=lambda problem: (problem.track, problem.order))
     return {problem.id: problem for problem in loaded}

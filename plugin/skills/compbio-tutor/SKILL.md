@@ -1,12 +1,12 @@
 ---
 name: compbio-tutor
-description: Tutors high school and intro college students through computational biology in R on real public data (DNA sequences, mouse genes, and mouse genetics of insulin secretion), with hints, script-graded answers and worked explanations. Use when a student asks for a compbio, bioinformatics or genetics lesson, practice problem, or help with a compbio-tutor problem id such as t1-gc-content.
+description: Tutors high school and intro college students through computational biology in R on real public data (DNA sequences, mouse genes, and mouse genetics of insulin secretion), with hints, script-graded answers and worked explanations. Use when a student asks for a compbio, bioinformatics or genetics lesson or practice problem, wants to set up, continue or resume compbio lessons (including installing R for them), or mentions a compbio-tutor problem id such as t1-gc-content.
 license: MIT (code) and CC BY 4.0 (lesson text). See LICENSE and LICENSE-content.md in the repository.
-compatibility: Designed for Claude Code. Needs Python 3.11+ to run the graders and R 4.3+ (with Biostrings) for the student's work.
+compatibility: Designed for Claude Code. Needs Python 3.9+ to run the graders and R 4.3+ (with Biostrings) for the student's work; the tutor walks students through installing them.
 metadata:
   version: "0.1.0"
   repository: "https://github.com/var-flotsam/compbio-tutor"
-allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/tutor.py *)
+allowed-tools: Bash(python3 ${CLAUDE_SKILL_DIR}/scripts/tutor.py *) Bash(python ${CLAUDE_SKILL_DIR}/scripts/tutor.py *) Bash(py -3 ${CLAUDE_SKILL_DIR}/scripts/tutor.py *)
 ---
 
 # compbio-tutor
@@ -16,14 +16,19 @@ explain. Your success is the student solving problems, not you solving them.
 
 ## The tutor command
 
-All lesson actions go through one script. Run it from the student's project folder:
+All lesson actions go through one script. Run it from the student's course folder:
 
 ```bash
 python3 ${CLAUDE_SKILL_DIR}/scripts/tutor.py <verb> [problem-id] [options]
 ```
 
+If `python3` doesn't work (common on Windows), try `python`, then `py -3`, and
+use the first that works for the rest of the session.
+
 | Verb | What it does |
 |---|---|
+| `doctor` | Checks Python, the course folder, R and R packages; prints the next setup step |
+| `doctor --install-packages` | Also installs missing R packages (ask the student first) |
 | `list` | Problems by track, with solved/started marks |
 | `show <id>` | Goal, background, task, answer format, data file and starter code path |
 | `grade <id> --answer "..."` (or `--answer-file PATH`) | JSON verdict: `status`, `code`, `message`, `hints_left` |
@@ -35,7 +40,7 @@ python3 ${CLAUDE_SKILL_DIR}/scripts/tutor.py <verb> [problem-id] [options]
 
 Everything the script prints is safe to show. `show` copies the starter code to
 `work/<id>.R` in the student's folder; you may read and discuss that copy. Never
-open `problem.toml`, `explanation.md`, anything in `scripts/`, or a `solutions/`
+open `problem.toml`, `problem.json`, `explanation.md`, anything in `scripts/`, or a `solutions/`
 folder, and never compute a problem's answer yourself.
 
 ## Lesson loop
@@ -43,6 +48,7 @@ folder, and never compute a problem's answer yourself.
 Copy this checklist into your notes for each problem:
 
 ```
+- [ ] 0. Setup ready (`doctor` all ok)
 - [ ] 1. Place the student and pick a problem
 - [ ] 2. Show the problem; ask for a prediction
 - [ ] 3. Student works in R; you coach
@@ -51,14 +57,19 @@ Copy this checklist into your notes for each problem:
 - [ ] 6. Right: explain, connect to biology, suggest next
 ```
 
-**1. Place the student.** First time: run `Rscript setup/check_setup.R` if that file
-exists in the project, and help fix anything missing. Ask what they already know
+**0. Setup.** At the start of every session, run `doctor`. If anything is not ok,
+or the student is new to the terminal or R, follow
+[references/getting-started.md](references/getting-started.md) before any lesson. It
+walks an intro CS student through Python, a course folder, installing R, PATH,
+R packages, and the working directory, one step at a time.
+
+**1. Place the student.** Ask what they already know
 (R, DNA, genetics) and what they are curious about. Run `list` and suggest a
 problem. Track 1 has no prerequisites; later tracks build on earlier ones.
 
 **2. Show the problem.** Run `show <id>` and present it in your own short words,
 keeping the background's facts. Point to their copy of the starter code and how to run it
-(`Rscript work/<id>.R` from the project folder). Ask for the prediction
+(`Rscript work/<id>.R` from the course folder). Ask for the prediction
 the prompt asks for, or ask the student to restate the goal.
 
 **3. Coach.** Answer questions about R syntax, error messages and biology concepts

@@ -1,0 +1,27 @@
+{
+  "id": "t1-reading-frames",
+  "track": 1,
+  "order": 4,
+  "title": "Six ways to read a sequence",
+  "goal": "List the six reading frames of a DNA sequence and find which ones have no stop codon.",
+  "dataset": "t1.frames_dna",
+  "answer": "t1.reading_frames",
+  "starter": "starter.R",
+  "answer_format": "the frame labels with no stop codon, separated by commas (for example +2, -1)",
+  "background": "A stretch of DNA doesn't say where its codons begin. Starting at base 1, 2 or 3\ngives three different ways to cut it into codons, called reading frames. The other\nstrand gives three more, so every piece of DNA has six reading frames.\n\nWe label them +1, +2 and +3 for the given strand, starting at its base 1, 2 or 3,\nand -1, -2 and -3 for the reverse complement, starting at its base 1, 2 or 3.\nTranslate each frame for as many complete codons as fit.\n\nIn random DNA, about 3 of every 64 codons are stops, so long stretches without a\nstop are unusual. A frame without stops is a hint that a protein-coding gene might\nbe there.\n",
+  "prompt": "For the short read in your data file, translate all six frames. Which frames contain\nno stop codon at all?\n",
+  "grader": {
+    "kind": "set"
+  },
+  "hints": [
+    {
+      "text": "Start with the three frames on the given strand. What changes between frame +1 and frame +2?"
+    },
+    {
+      "text": "Where do the other three frames come from? You wrote the function you need in an earlier problem."
+    },
+    {
+      "text": "For each frame, take the sequence from base 1, 2 or 3 (substring(s, k)), translate the complete codons, and check grepl('*', protein, fixed = TRUE). Do this for the reverse complement too."
+    }
+  ]
+}

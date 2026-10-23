@@ -215,7 +215,7 @@ def reading_frames(text: str) -> Expected:
     seq = _only_record(text)
     labels = ["+1", "+2", "+3", "-1", "-2", "-3"]
     frames = sq.six_frame_translations(seq)
-    open_frames = [label for label, prot in zip(labels, frames, strict=True) if "*" not in prot]
+    open_frames = [label for label, prot in zip(labels, frames) if "*" not in prot]
     forward_only = [label for label in open_frames if label.startswith("+")]
     diagnostics: tuple[Diagnostic, ...] = ()
     if forward_only != open_frames:

@@ -140,7 +140,7 @@ def grade_numeric(answer: str, expected: Expected, *, tolerance: float) -> Verdi
     value = parse_number(answer)
 
     def close(target: object, tol: float = tolerance) -> bool:
-        return isinstance(target, int | float) and abs(value - float(target)) <= tol
+        return isinstance(target, (int, float)) and abs(value - float(target)) <= tol
 
     if close(expected.value):
         return Verdict("correct")
@@ -182,8 +182,8 @@ def grade_sequence(answer: str, expected: Expected, *, alphabet: str) -> Verdict
             f"Your sequence is {relation} than expected.",
             {"length_given": len(given)},
         )
-    mismatches = sum(a != b for a, b in zip(given, target, strict=True))
-    first = next(i for i, (a, b) in enumerate(zip(given, target, strict=True)) if a != b)
+    mismatches = sum(a != b for a, b in zip(given, target))
+    first = next(i for i, (a, b) in enumerate(zip(given, target)) if a != b)
     return Verdict(
         "incorrect",
         "mismatch",
@@ -199,14 +199,14 @@ def grade_set(answer: str, expected: Expected, *, case_sensitive: bool = False) 
 
     given = {norm(item) for item in parse_items(answer)}
     target_values = expected.value
-    assert isinstance(target_values, Sequence | set | frozenset)
+    assert isinstance(target_values, (Sequence, set, frozenset))
     target = {norm(item) for item in target_values}
     if given == target:
         return Verdict("correct")
     diag = _match_diagnostic(
         expected,
         lambda value: (
-            isinstance(value, Sequence | set | frozenset) and {norm(v) for v in value} == given
+            isinstance(value, (Sequence, set, frozenset)) and {norm(v) for v in value} == given
         ),
     )
     if diag:

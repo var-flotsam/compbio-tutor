@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """compbio-tutor command line: the only interface Claude uses during a lesson.
 
+    python scripts/tutor.py doctor [--install-packages]
     python scripts/tutor.py list
     python scripts/tutor.py show <problem-id>
     python scripts/tutor.py dataset <problem-id> [--seed N]
@@ -23,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from tutorlib import doctor  # noqa: E402
 from tutorlib.problems import Problem, ProblemError, load_all  # noqa: E402
 from tutorlib.progress import Progress, data_path, work_path  # noqa: E402
 
@@ -163,6 +165,8 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="tutor.py", description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="verb", required=True)
     sub.add_parser("list")
+    doc = sub.add_parser("doctor")
+    doc.add_argument("--install-packages", action="store_true")
     sub.add_parser("progress")
     for verb in ("show", "hint"):
         sub.add_parser(verb).add_argument("problem")
@@ -178,6 +182,10 @@ def main(argv: list[str] | None = None) -> None:
     ex.add_argument("problem")
     ex.add_argument("--student-asked", action="store_true")
     args = parser.parse_args(argv)
+
+    if args.verb == "doctor":
+        print(doctor.run(install_packages=args.install_packages).render())
+        return
 
     try:
         problems = load_all()

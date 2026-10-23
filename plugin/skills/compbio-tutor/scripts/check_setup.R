@@ -1,9 +1,9 @@
 # compbio-tutor setup check
 #
-#   Rscript setup/check_setup.R            report what is missing
-#   Rscript setup/check_setup.R --install  also install missing packages
+#   Rscript check_setup.R            report what is missing
+#   Rscript check_setup.R --install  also install missing packages
 #
-# Students and teachers run this once before the first lesson.
+# The tutor runs this through `tutor.py doctor`; teachers can run it directly.
 
 min_r <- "4.3.0"
 # Packages each track needs. Biostrings comes from Bioconductor; the rest from CRAN.
@@ -58,7 +58,7 @@ for (track in names(needed)) {
 }
 
 if (ok) {
-  cat("\nAll set. Open Claude Code in this folder and ask to start a compbio lesson.\n")
+  cat("\nAll R packages are ready.\n")
 } else {
   cat("\nSomething is missing. Run again with --install, or ask your teacher.\n")
   quit(status = 1)

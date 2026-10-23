@@ -1,0 +1,11 @@
+{
+  "name": "compbio-tutor",
+  "version": "0.1.0",
+  "description": "Tutors students through computational biology in R on real public data, with hints and script-graded answers",
+  "author": {
+    "name": "var-flotsam"
+  },
+  "homepage": "https://github.com/var-flotsam/compbio-tutor",
+  "repository": "https://github.com/var-flotsam/compbio-tutor",
+  "license": "MIT"
+}

@@ -16,7 +16,36 @@ jobs:
       - run: uv run mypy
       - run: uv run pytest -q
       - name: Validate skill against the Agent Skills spec
-        run: uvx --from skills-ref==0.1.1 agentskills validate skills/compbio-tutor
+        run: uvx --from skills-ref==0.1.1 agentskills validate plugin/skills/compbio-tutor
+
+  student-python:
+    # The graders run on students' own Python, which can be as old as 3.9
+    # (macOS's built-in python3). Smoke-test the CLI there on every OS.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.9", "3.13"]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: CLI smoke test from a fresh course folder
+        run: |
+          mkdir -p "$RUNNER_TEMP/compbio" && cd "$RUNNER_TEMP/compbio"
+          T="$GITHUB_WORKSPACE/plugin/skills/compbio-tutor/scripts/tutor.py"
+          python "$T" list
+          python "$T" show t1-revcomp
+          test -f data/t1-revcomp.fasta && test -f work/t1-revcomp.R
+          python "$T" grade t1-revcomp --answer ACGT | grep '"status": "incorrect"'
+          python "$T" hint t1-revcomp | grep 'Hint 1 of 3'
+          python "$T" explain t1-revcomp | grep 'Not yet'
+          python "$T" doctor
 
   r-solutions:
     # Prove the R path works for students on every OS: run each reference
@@ -33,7 +62,7 @@ jobs:
           r-version: release
           use-public-rspm: true
       - name: Install R packages
-        run: Rscript setup/check_setup.R --install
+        run: Rscript plugin/skills/compbio-tutor/scripts/check_setup.R --install
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked
-      - run: uv run pytest -q tests/test_r_solutions.py
+      - run: uv run pytest -q tests/test_r_solutions.py tests/test_doctor.py

@@ -45,3 +45,18 @@ def test_problems_are_listed_in_teaching_order(problems: dict[str, Problem]) -> 
     keys = [(p.track, p.order) for p in problems.values()]
     assert keys == sorted(keys) and len(set(keys)) == len(keys)
     assert next(iter(problems)) == "t1-gc-content"
+
+
+def test_problem_json_is_built_from_toml() -> None:
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    result = subprocess.run(
+        [sys.executable, str(root / "tools" / "build_problems.py"), "--check"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stdout

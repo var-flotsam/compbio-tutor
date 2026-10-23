@@ -1,0 +1,14 @@
+{
+  "name": "compbio-tutor",
+  "description": "A tutor for computational biology in R, for high school and intro college students",
+  "owner": {
+    "name": "var-flotsam"
+  },
+  "plugins": [
+    {
+      "name": "compbio-tutor",
+      "source": "./plugin",
+      "description": "Lessons, hints and script-graded problems on DNA sequences, mouse genes and mouse genetics of insulin secretion"
+    }
+  ]
+}

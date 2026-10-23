@@ -46,8 +46,18 @@ Revised the same day for those answers. Students use R in all three tracks
 track 1; the skill teaches the needed R in passing). Track 3 assumes tracks 1-2 or
 equivalent.
 
-**Teachers:** run a pilot with the teacher guide. Setup is a script that checks R,
-installs packages, and installs the skill.
+**Teachers:** run a pilot with the teacher guide. Students need Claude Code; the
+tutor handles everything after that (see "Onboarding from zero" below).
+
+**Onboarding from zero** (added 2026-10-23 at Ethan's request; audience: an intro
+CS course). Students install the tutor inside Claude Code with one command
+(`/plugin install compbio-tutor --marketplace var-flotsam/compbio-tutor`); the
+repo is a plugin marketplace. Every session starts with `tutor.py doctor`, which
+checks Python, the course folder, R, PATH and R packages and prints one next
+step. `references/getting-started.md` teaches the terminal, folders, installing
+R on each OS, PATH, packages, the working directory and an editor, one step per
+turn, with the student typing the commands. After any restart the student types
+`/compbio-tutor:compbio-tutor` to bring the tutor back.
 
 **Surface: Claude Code.** Students work in a project folder that contains the skill
 in `.claude/skills/compbio-tutor/`, with full network access and R installed
@@ -57,20 +67,22 @@ locally. Claude can run the student's R code and the graders.
 |---|---|
 | Students learn R | Starter code, examples and hints are in R. Track 1 uses base R plus Bioconductor `Biostrings`, track 2 uses data frames, and track 3 uses R/qtl2. |
 | Reproducible R setup | `renv.lock` pins R packages; `setup/check_setup.R` reports what is missing in plain language |
-| Graders independent of the student's language | Graders are Python (stdlib only) and check answers and output files, not code. Claude Code runs them with `uv run`. |
+| Graders independent of the student's language | Graders are Python (stdlib only, 3.9+) and check answers and output files, not code. |
 | Capstone data too big to bundle | `tutor.py fetch-data` downloads a versioned data pack from GitHub Releases once and verifies its SHA-256 |
 | Portability later | `SKILL.md` frontmatter still uses only the six spec fields, so a claude.ai version stays possible (tracks 1-2 only) |
 
-Minimum versions: Python 3.11 (graders, via uv) and R 4.3 or later with R/qtl2.
+Minimum versions on students' computers: Python 3.9 (the graders; macOS ships 3.9) and
+R 4.3 or later. Development uses Python 3.11+ with uv.
 
 ## 3. Repository layout
 
 ```
 compbio-tutor/                    repo root
-├── skills/compbio-tutor/         the shippable skill (name matches folder)
+├── .claude-plugin/marketplace.json  makes the repo a plugin marketplace
+├── plugin/                       the plugin; skill in plugin/skills/compbio-tutor/
 ├── prep/                         data build pipeline, not shipped (R/qtl2 + Python)
-├── setup/                        check_setup.R, install script for students and teachers
-├── renv.lock                     pinned R packages for students
+├── solutions/                    reference R solutions, outside the plugin
+├── tools/build_problems.py       problem.toml -> problem.json
 ├── tests/                        pytest: graders, problem files, skill checks
 ├── evals/                        scripted student conversations, runner, results
 ├── docs/                         design.md, research.md, HANDOFF.md, teacher-guide.md
@@ -111,7 +123,9 @@ student-safe output.
 
 ## 5. Problem format
 
-Each problem is a folder with a `problem.toml`:
+Each problem is a folder with a `problem.toml`, which authors edit;
+`tools/build_problems.py` writes the `problem.json` the skill reads (so the skill
+needs no TOML parser and runs on Python 3.9). A test fails if the JSON is stale.
 
 ```toml
 id = "t1-gc-content"
