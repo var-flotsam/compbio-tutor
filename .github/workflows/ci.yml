@@ -28,7 +28,7 @@ jobs:
           use-public-rspm: true
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          packages: any::lintr
+          packages: any::lintr, any::cyclocomp
           dependencies: '"hard"'
           install-pandoc: false
       - name: lintr
@@ -72,6 +72,10 @@ jobs:
           Rscript "$GITHUB_WORKSPACE/plugin/skills/compbio-tutor/scripts/tutor.R" doctor --install-packages | tee doctor.txt
           grep 'Everything is ready' doctor.txt
       - name: Install test packages
-        run: Rscript -e 'install.packages(c("testthat", "withr"), repos = "https://cloud.r-project.org")'
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: any::testthat, any::withr
+          dependencies: '"hard"'
+          install-pandoc: false
       - name: testthat
         run: Rscript -e 'testthat::test_dir("tests/testthat", stop_on_failure = TRUE)'
