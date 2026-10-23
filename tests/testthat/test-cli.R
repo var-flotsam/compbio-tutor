@@ -79,6 +79,13 @@ test_that("grade reads long answers from a file", {
   expect_equal(json_field(res$out, "status"), "correct")
   expect_message(res <- run_cli("grade", "t1-revcomp", "--answer-file", "nope.txt"), "Couldn't read")
   expect_equal(res$status, 1L)
+  outside <- withr::local_tempfile(lines = answer_for("t1-revcomp"))
+  expect_message(res <- run_cli("grade", "t1-revcomp", "--answer-file", outside), "inside the course folder")
+  expect_equal(res$status, 1L)
+  expect_message(
+    res <- run_cli("grade", "t1-revcomp", "--answer-file", "../x.txt"), "inside the course folder"
+  )
+  expect_equal(res$status, 1L)
   expect_message(res <- run_cli("grade", "t1-revcomp"), "needs --answer")
   expect_equal(res$status, 2L)
 })
@@ -152,4 +159,49 @@ test_that("tutor.R runs as a script with Rscript", {
   expect_true(any(grepl("t1-gc-content", out)))
   status <- system2(rscript, c(shQuote(tutor_script), "show", "nope"), stdout = FALSE, stderr = FALSE)
   expect_equal(status, 1L)
+})
+
+test_that("paths are confined to the course folder", {
+  dir <- local_course()
+  expect_true(inside_course("data/x.fasta"))
+  expect_true(inside_course(file.path(dir, "work", "a.R")))
+  expect_false(inside_course("../elsewhere.txt"))
+  expect_false(inside_course("missing/../../elsewhere.txt"))
+  expect_true(inside_course("missing/../data/x.fasta"))
+  expect_false(inside_course(tempdir()))
+  expect_false(inside_course(path.expand("~/.bashrc")))
+  expect_error(course_path("..", "x"), "outside the course folder")
+  # A symlink inside the folder that points outside doesn't count as inside.
+  target <- withr::local_tempdir()
+  if (isTRUE(suppressWarnings(file.symlink(target, file.path(dir, "link"))))) {
+    expect_false(inside_course(file.path(dir, "link", "answer.txt")))
+  }
+})
+
+test_that("a whole lesson touches nothing outside the course folder", {
+  dir <- local_course()
+  home <- withr::local_tempdir("home")
+  snapshot <- function(path) {
+    files <- list.files(path, recursive = TRUE, all.files = TRUE, full.names = TRUE)
+    stats::setNames(as.character(file.mtime(files)), files)
+  }
+  skill_before <- snapshot(skill_root)
+  rscript <- file.path(R.home("bin"), "Rscript")
+  run <- function(...) {
+    system2(rscript, c(shQuote(tutor_script), ...), stdout = TRUE, stderr = TRUE,
+      env = c(sprintf("HOME=%s", home), sprintf("R_USER_CACHE_DIR=%s", home)))
+  }
+  run("list")
+  run("show", "t1-gc-content")
+  run("grade", "t1-gc-content", "--answer", "0.5")
+  run("hint", "t1-gc-content")
+  run("explain", "t1-gc-content")
+  run("dataset", "t1-gc-content", "--seed", "3")
+  run("progress")
+  run("doctor")
+  expect_length(list.files(home, all.files = TRUE, no.. = TRUE), 0)
+  expect_identical(snapshot(skill_root), skill_before)
+  made <- list.files(dir, recursive = TRUE, all.files = TRUE)
+  allowed <- "^(\\.compbio-tutor/|data/|work/|\\.Rprofile$)"
+  expect_true(all(grepl(allowed, made)), info = paste(made, collapse = ", "))
 })

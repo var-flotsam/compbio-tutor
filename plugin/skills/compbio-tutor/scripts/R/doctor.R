@@ -12,6 +12,15 @@ needed_packages <- list("Track 1" = c("Biostrings"))
 bioconductor_packages <- c("Biostrings")
 cran_repo <- "https://cloud.r-project.org"
 
+# Packages are installed into the course folder, not the student's R library,
+# and a course-folder .Rprofile points R at them whenever R starts here.
+library_rel <- ".compbio-tutor/library"
+rprofile_marker <- "# compbio-tutor:"
+rprofile_lines <- c(
+  paste(rprofile_marker, "use the R packages installed in this course folder."),
+  sprintf('if (dir.exists("%s")) .libPaths(normalizePath("%s"))', library_rel, library_rel)
+)
+
 check <- function(name, ok, detail, fix = "") {
   list(name = name, ok = ok, detail = detail, fix = fix)
 }
@@ -56,21 +65,49 @@ folder_check <- function(cwd = getwd(), home = path.expand("~")) {
   check("Course folder", TRUE, cwd)
 }
 
+project_library <- function() course_path(".compbio-tutor", "library")
+
+# Use only the course library (plus R's own), like the course .Rprofile does.
+use_project_library <- function() {
+  lib <- project_library()
+  dir.create(lib, showWarnings = FALSE, recursive = TRUE)
+  .libPaths(lib)
+  # Keep caches that packages such as BiocManager write inside the course folder too.
+  cache <- course_path(".compbio-tutor", "cache")
+  Sys.setenv(R_USER_CACHE_DIR = cache, R_USER_DATA_DIR = cache, R_USER_CONFIG_DIR = cache)
+  lib
+}
+
+library_check <- function() {
+  path <- course_path(".Rprofile")
+  if (!file.exists(path)) {
+    writeLines(rprofile_lines, path)
+  } else if (!any(startsWith(readLines(path, warn = FALSE), rprofile_marker))) {
+    return(check(
+      "Course R library", FALSE, "this folder already has its own .Rprofile",
+      sprintf("add these two lines to .Rprofile (or ask your teacher):\n%s",
+        paste(rprofile_lines, collapse = "\n"))
+    ))
+  }
+  use_project_library()
+  check("Course R library", TRUE, library_rel)
+}
+
 missing_packages <- function() {
   pkgs <- unlist(needed_packages, use.names = FALSE)
   pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
 }
 
-install_packages <- function(pkgs) {
+install_packages <- function(pkgs, lib = project_library()) {
   for (pkg in pkgs) {
-    message(sprintf("Installing %s...", pkg))
+    message(sprintf("Installing %s into %s...", pkg, library_rel))
     if (pkg %in% bioconductor_packages) {
       if (!requireNamespace("BiocManager", quietly = TRUE)) {
-        utils::install.packages("BiocManager", repos = cran_repo)
+        utils::install.packages("BiocManager", lib = lib, repos = cran_repo)
       }
-      BiocManager::install(pkg, update = FALSE, ask = FALSE)
+      BiocManager::install(pkg, lib = lib, update = FALSE, ask = FALSE)
     } else {
-      utils::install.packages(pkg, repos = cran_repo)
+      utils::install.packages(pkg, lib = lib, repos = cran_repo)
     }
   }
 }
@@ -94,9 +131,17 @@ packages_check <- function(install = FALSE) {
   )
 }
 
+# Stops at the first failure, so nothing is written until the folder is right.
 run_doctor <- function(install_packages = FALSE, cwd = getwd()) {
-  checks <- list(r_version_check(), folder_check(cwd))
-  if (checks[[1]]$ok) checks[[3]] <- packages_check(install_packages)
+  steps <- list(
+    r_version_check, function() folder_check(cwd), library_check,
+    function() packages_check(install_packages)
+  )
+  checks <- list()
+  for (step in steps) {
+    checks[[length(checks) + 1]] <- step()
+    if (!checks[[length(checks)]]$ok) break
+  }
   checks
 }
 

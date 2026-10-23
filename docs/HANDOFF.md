@@ -16,6 +16,10 @@ Current state of the compbio-tutor project, kept current after each phase.
 - R rewrite (Ethan, 2026-10-23: "write the answer checker in R"): the tutor command,
   graders and setup check are base R, so students install only R. Python remains
   only for repo checks (`tests/test_skill.py`) and the future eval runner.
+- Course-folder rule (Ethan, 2026-10-23): nothing outside the working directory is
+  read, written or changed; packages go in `.compbio-tutor/library`. Trial:
+  `evals/transcripts/trial-4-folder-boundary.md`. Asked Ethan whether reading the
+  skill's own installed files is OK (recommended yes).
 - Phases 5-7: not started.
 
 ## Where things are
@@ -38,6 +42,8 @@ Current state of the compbio-tutor project, kept current after each phase.
 - Repo: var-flotsam/compbio-tutor, which Ethan creates (sessions can't create repos).
 - Graders regenerate the dataset from the student's seed, so editing the data file can't change the key.
 - No `renv.lock`: `doctor --install-packages` covers it; revisit for R/qtl2 in Phase 6.
+- Only touch files inside the course folder (`course_path()` / `inside_course()` in
+  `scripts/R/progress.R`); `COMPBIO_TUTOR_HOME` was removed.
 - The tutor's R code must stay base R and work on R 4.3 (CI runs 4.3); only lessons use packages.
 
 ## Open

@@ -32,10 +32,52 @@ test_that("render shows each check and only the first fix", {
   expect_match(render_doctor(checks[1]), "Everything is ready")
 })
 
+# doctor switches R to the course library; put the test session's back afterwards.
+local_doctor <- function(env = parent.frame()) {
+  withr::local_libpaths(.libPaths(), .local_envir = env)
+  withr::local_envvar(
+    R_USER_CACHE_DIR = NA, R_USER_DATA_DIR = NA, R_USER_CONFIG_DIR = NA, .local_envir = env
+  )
+}
+
 test_that("doctor runs end to end in a course folder", {
   local_course()
+  local_doctor()
   res <- run_cli("doctor")
   expect_equal(res$status, 0L)
   expect_match(res$out, "compbio-tutor setup check")
   expect_match(res$out, "[ok] R:", fixed = TRUE)
+})
+
+test_that("doctor sets up a package library inside the course folder", {
+  dir <- local_course()
+  local_doctor()
+  run_cli("doctor")
+  expect_true(dir.exists(file.path(dir, ".compbio-tutor", "library")))
+  expect_equal(readLines(file.path(dir, ".Rprofile")), rprofile_lines)
+  expect_equal(.libPaths()[1], normalizePath(file.path(dir, ".compbio-tutor", "library"), "/"))
+  expect_true(startsWith(Sys.getenv("R_USER_CACHE_DIR"), normalizePath(dir, "/")))
+  # A student's own .Rprofile is left alone; doctor says what to add.
+  writeLines("options(digits = 4)", file.path(dir, ".Rprofile"))
+  res <- run_cli("doctor")
+  expect_match(res$out, "[!!] Course R library", fixed = TRUE)
+  expect_equal(readLines(file.path(dir, ".Rprofile")), "options(digits = 4)")
+})
+
+test_that("doctor writes nothing when the folder is wrong", {
+  dir <- local_course()
+  local_doctor()
+  checks <- run_doctor(cwd = "/")
+  expect_false(checks[[2]]$ok)
+  expect_length(checks, 2)
+  expect_false(file.exists(file.path(dir, ".Rprofile")))
+})
+
+test_that("the course .Rprofile makes R use the course library", {
+  dir <- local_course()
+  local_doctor()
+  run_cli("doctor")
+  rscript <- file.path(R.home("bin"), "Rscript")
+  out <- system2(rscript, c("-e", shQuote("cat(.libPaths()[1])")), stdout = TRUE)
+  expect_equal(out, normalizePath(file.path(dir, ".compbio-tutor", "library"), "/"))
 })

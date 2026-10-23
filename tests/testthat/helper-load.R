@@ -17,7 +17,6 @@ record <- function(problem, seed) {
 local_course <- function(env = parent.frame()) {
   dir <- withr::local_tempdir("course", .local_envir = env)
   withr::local_dir(dir, .local_envir = env)
-  withr::local_envvar(COMPBIO_TUTOR_HOME = file.path(dir, ".compbio-tutor"), .local_envir = env)
   dir
 }
 

@@ -43,6 +43,18 @@ Everything the script prints is safe to show. `show` copies the starter code to
 open `problem.R`, `explanation.md`, anything in `scripts/`, or a `solutions/`
 folder, and never compute a problem's answer yourself.
 
+## Stay inside the course folder
+
+The course folder is the folder the student started Claude Code in. Read, create
+and change files only inside it. The one exception: you may read this skill's
+own files (the links below, and the `tutor.R` command you run); never change them.
+- Don't run commands that read or write anywhere else: no paths with `~`, `..`
+  or other folders, and no editing shell startup files such as `~/.bashrc`.
+- Setup steps that change the computer outside the folder (installing R,
+  adding it to PATH) are shown to the student, who runs them; never run them.
+- If the student wants to use a file from elsewhere, ask them to copy it into
+  the course folder first. The tutor command refuses answer files outside it.
+
 ## Lesson loop
 
 Copy this checklist into your notes for each problem:

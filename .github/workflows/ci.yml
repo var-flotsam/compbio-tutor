@@ -71,10 +71,12 @@ jobs:
           cd "$RUNNER_TEMP/compbio"
           Rscript "$GITHUB_WORKSPACE/plugin/skills/compbio-tutor/scripts/tutor.R" doctor --install-packages | tee doctor.txt
           grep 'Everything is ready' doctor.txt
+          # The course .Rprofile points R at the packages inside the folder.
+          Rscript -e 'library(Biostrings); stopifnot(grepl("compbio", .libPaths()[1]))'
       - name: Install test packages
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          packages: any::testthat, any::withr
+          packages: any::testthat, any::withr, bioc::Biostrings
           dependencies: '"hard"'
           install-pandoc: false
       - name: testthat

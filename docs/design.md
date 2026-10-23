@@ -59,6 +59,15 @@ R on each OS, PATH, packages, the working directory and an editor, one step per
 turn, with the student typing the commands. After any restart the student types
 `/compbio-tutor:compbio-tutor` to bring the tutor back.
 
+**Files stay in the course folder** (Ethan, 2026-10-23: "The skill should not
+read, write, or modify files outside the working directory"). The tutor command
+resolves every path it uses against the course folder and refuses anything
+outside it (including `..` and symlinks out); R packages install into
+`.compbio-tutor/library` with a two-line course `.Rprofile`; SKILL.md tells Claude
+to stay in the folder and to show, not run, setup steps that touch the rest of the
+computer. Exceptions: reading the skill's own installed files, and R's temporary
+session folder, which R creates and deletes itself.
+
 **Surface: Claude Code.** Students work in a project folder that contains the skill
 in `.claude/skills/compbio-tutor/`, with full network access and R installed
 locally. Claude can run the student's R code and the graders.

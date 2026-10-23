@@ -3,17 +3,49 @@
 default_seed <- 1L
 progress_fields <- c("seed", "attempts", "hints_used", "solved", "revealed", "last_code")
 
-# $COMPBIO_TUTOR_HOME if set, else `.compbio-tutor` in the current folder.
-state_dir <- function() {
-  home <- Sys.getenv("COMPBIO_TUTOR_HOME")
-  if (nzchar(home)) home else ".compbio-tutor"
+# The tutor reads and writes only inside the course folder: the folder the
+# student started Claude Code in, which is R's working directory.
+course_dir <- function() normalizePath(getwd(), winslash = "/")
+
+# Remove "." and ".." segments from an absolute path without touching the disk.
+collapse_dots <- function(path) {
+  out <- character(0)
+  for (part in strsplit(path, "/", fixed = TRUE)[[1]]) {
+    if (part == "..") {
+      if (length(out) > 1) out <- out[-length(out)]
+    } else if (part != "." && (nzchar(part) || length(out) == 0)) {
+      out <- c(out, part)
+    }
+  }
+  if (length(out) == 1) paste0(out, "/") else paste(out, collapse = "/")
 }
 
-course_dir <- function() dirname(normalizePath(state_dir(), mustWork = FALSE))
+# TRUE if `path` (existing or not) resolves to somewhere inside the course folder.
+inside_course <- function(path) {
+  path <- path.expand(path)
+  if (!grepl("^([/\\\\]|[A-Za-z]:)", path)) path <- file.path(getwd(), path)
+  full <- collapse_dots(gsub("\\\\", "/", path))
+  # Resolve symlinks in the part that exists, so a link can't lead outside.
+  parent <- dirname(full)
+  while (!dir.exists(parent) && dirname(parent) != parent) parent <- dirname(parent)
+  rest <- substring(full, nchar(parent) + 1)
+  full <- paste0(normalizePath(parent, winslash = "/"), rest)
+  root <- course_dir()
+  full == root || startsWith(full, paste0(sub("/$", "", root), "/"))
+}
+
+# Stops instead of touching a file outside the course folder.
+course_path <- function(...) {
+  path <- file.path(course_dir(), ...)
+  if (!inside_course(path)) stop(sprintf("refusing to use %s: it is outside the course folder", path))
+  path
+}
+
+state_dir <- function() course_path(".compbio-tutor")
 
 # The student's own copy of a problem's starter code, and their data file.
-work_path <- function(pid) file.path(course_dir(), "work", paste0(pid, ".R"))
-data_path <- function(pid) file.path(course_dir(), "data", paste0(pid, ".fasta"))
+work_path <- function(pid) course_path("work", paste0(pid, ".R"))
+data_path <- function(pid) course_path("data", paste0(pid, ".fasta"))
 
 new_problem_progress <- function() {
   list(

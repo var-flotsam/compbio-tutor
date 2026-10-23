@@ -209,6 +209,12 @@ read_seed <- function(opts) {
 read_answer <- function(opts) {
   path <- opts[["answer-file"]]
   if (!is.null(path)) {
+    if (!inside_course(path)) {
+      message(sprintf(
+        "The answer file must be inside the course folder (%s). Copy it there first.", course_dir()
+      ))
+      return(1L)
+    }
     if (!file.exists(path)) {
       message(sprintf("Couldn't read the answer file: %s", path))
       return(1L)

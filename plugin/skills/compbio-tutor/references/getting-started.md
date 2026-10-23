@@ -25,8 +25,9 @@ these is part of the lesson, so explain, then let the student do it.
   the exact command or click path, ask the student to do it and tell you what
   happened.
 - The student types terminal commands themselves where it's safe, because this
-  is a skill they're learning. You may run read-only checks (`doctor`, `pwd`,
-  `ls`, `Rscript --version`) yourself. Ask before running anything that installs
+  is a skill they're learning. You may run read-only checks inside the course
+  folder (`doctor`, `pwd`, `ls`, `Rscript --version`) yourself. Anything that
+  looks at or changes other folders (steps 1-3) is for the student to run. Ask before running anything that installs
   software, and never use `sudo` or administrator commands on the student's
   behalf: show the command and let them run it.
 - If the student is on a school-managed computer and an install is blocked,
@@ -66,7 +67,9 @@ Check: `Rscript --version` prints a version 4.3 or newer.
 
 ## Step 2: Let the terminal find R (PATH)
 Mostly on Windows: the R installer doesn't add R to PATH, so `Rscript` is "not
-found" even though R is installed. Explain what PATH is, then find R's folder:
+found" even though R is installed. Explain what PATH is, then have the student
+find R's folder and run the line themselves (these touch files outside the
+course folder, so you show them and don't run them):
 - **Windows (Git Bash)**: `ls "/c/Program Files/R"` lists versions such as
   `R-4.4.1`. Have the student run, with their version,
   `echo 'export PATH="$PATH:/c/Program Files/R/R-4.4.1/bin"' >> ~/.bashrc`
@@ -102,7 +105,11 @@ If OneDrive manages Documents, any folder they can find again is fine.
 ## Step 4: R packages
 Run `tutor.R doctor --install-packages` (ask first; it downloads and can take a
 few minutes). It installs Biostrings from Bioconductor, the standard source of
-biology packages for R. If it fails, show the student the last lines of the
+biology packages for R, into `.compbio-tutor/library` inside the course folder,
+so nothing outside the folder changes. `doctor` also writes a two-line
+`.Rprofile` in the folder: R runs that file whenever it starts here, and it
+tells R to use the course's packages. Explain this in a sentence if the student
+asks what the new files are. If it fails, show the student the last lines of the
 output and suggest they share them with their teacher.
 
 ## Step 5: First R script and the working directory
@@ -123,10 +130,9 @@ Before lesson 1, have the student run one script so they see how it works:
 5. Respond to their answer before moving on: confirm what they got right, fix
    any misunderstanding, and only then start placing them in a lesson.
 
-If the student uses RStudio or the R console instead of `Rscript`, they set the
-working directory with `setwd("~/Documents/compbio")`, or in RStudio with
-File > New Project > Existing Directory > the course folder. Check with
-`getwd()`.
+If the student uses RStudio, they should open the course folder as a project
+(File > New Project > Existing Directory > the course folder), so the working
+directory and the course's packages are both set. Check with `getwd()`.
 
 ## Step 6: Editing files
 Students edit their starter code in `work/`. Use the editor their class uses. If
