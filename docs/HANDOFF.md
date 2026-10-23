@@ -29,6 +29,12 @@ Current state of the compbio-tutor project, kept current after each phase.
   R only via setup script + custom network allowlist, files lost unless committed;
   `doctor` flags `CLAUDE_CODE_REMOTE=true`. Phone use: Remote Control to a laptop.
   Ethan decided (2026-10-23): no cloud version.
+- Seamless R (Ethan chose 2026-10-23): no PATH or settings steps for students. The
+  plugin ships `plugin/bin/compbio-tutor`, which finds Rscript (PATH, then the usual
+  install folders) and runs the tutor or `run work/x.R`; allowed-tools is just
+  `Bash(compbio-tutor *)`. Students run code by asking the tutor, not in their own
+  terminal. Live trial with only Skill allowed: no prompts. Windows to be confirmed
+  by Ethan.
 - Phases 5-7: not started.
 
 ## Where things are
@@ -63,5 +69,6 @@ Current state of the compbio-tutor project, kept current after each phase.
 ## How to trial the skill headlessly
 Use `--plugin-dir <repo>/plugin`, then per turn:
 `claude -p "<student message>" --session-id <uuid>` (first) / `--resume <uuid>` (later),
-with `--allowedTools "Skill" "Bash(Rscript:*)" "Read"`.
+with `--allowedTools "Skill"` only (the skill pre-approves `compbio-tutor`), and
+`env -u CLAUDE_CODE_REMOTE` when trialling from a cloud session.
 Without `Skill` allowed, `-p` mode denies the skill and Claude improvises a lesson.

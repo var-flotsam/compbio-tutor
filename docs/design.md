@@ -70,6 +70,11 @@ reads its own guides through `tutor.R guide <name>`, which allowed-tools
 pre-approves, so it never opens files in the plugin folder directly. R's own
 temporary session folder is the one thing outside, and R deletes it itself.
 
+**No settings for students** (Ethan, 2026-10-23: the skill should be seamless).
+The plugin's `bin/compbio-tutor` command finds R wherever the installer put it and
+runs both the tutor and the student's scripts (`compbio-tutor run work/x.R`), so no
+one edits PATH. Students ask the tutor to run their code.
+
 **Surface: Claude Code.** Students work in a project folder that contains the skill
 in `.claude/skills/compbio-tutor/`, with full network access and R installed
 locally. Claude can run the student's R code and the graders.

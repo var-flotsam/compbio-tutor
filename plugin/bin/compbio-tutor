@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# compbio-tutor: runs the tutor (and the student's own R scripts) with the
+# student's R, wherever the R installer put it, so nobody has to edit PATH.
+#
+#   compbio-tutor <verb> [args]     the tutor command (list, show, grade, ...)
+#   compbio-tutor run work/x.R      run a script from the course folder
+set -u
+
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+tutor="$here/../skills/compbio-tutor/scripts/tutor.R"
+
+# Newest Rscript in the usual install folders, if it isn't on PATH already.
+find_rscript() {
+  if command -v Rscript >/dev/null 2>&1; then
+    command -v Rscript
+    return 0
+  fi
+  local local_app=""
+  if [ -n "${LOCALAPPDATA:-}" ] && command -v cygpath >/dev/null 2>&1; then
+    local_app="$(cygpath -u "$LOCALAPPDATA")"
+  fi
+  local found
+  found="$(
+    for c in "/c/Program Files/R"/R-*/bin/Rscript.exe \
+             "$local_app/Programs/R"/R-*/bin/Rscript.exe \
+             /Library/Frameworks/R.framework/Resources/bin/Rscript \
+             /opt/homebrew/bin/Rscript /usr/local/bin/Rscript /usr/bin/Rscript \
+             /opt/R/*/bin/Rscript; do
+      [ -x "$c" ] && printf '%s\n' "$c"
+    done | sort -V | tail -n 1
+  )"
+  [ -n "$found" ] && printf '%s\n' "$found"
+}
+
+rscript="$(find_rscript)" || rscript=""
+if [ -z "$rscript" ]; then
+  echo "R isn't installed on this computer yet (no Rscript found)."
+  echo "Next step: install R. The tutor's setup guide shows how: compbio-tutor guide getting-started"
+  # The guide is plain text, so show it even without R.
+  if [ "${1:-}" = "guide" ] && [ -n "${2:-}" ] && [ -f "$here/../skills/compbio-tutor/references/$2.md" ]; then
+    case "$2" in *[!a-z0-9-]*) ;; *) cat "$here/../skills/compbio-tutor/references/$2.md" ;; esac
+  fi
+  exit 3
+fi
+
+if [ "${1:-}" = "run" ]; then
+  script="${2:-}"
+  case "$script" in
+    ""|/*|*..*|~*|[A-Za-z]:*) echo "Give a script inside the course folder, such as work/t1-gc-content.R"; exit 2 ;;
+    *.R) ;;
+    *) echo "compbio-tutor run only runs .R files"; exit 2 ;;
+  esac
+  if [ ! -f "$script" ]; then
+    echo "There's no file called $script in this folder."
+    exit 1
+  fi
+  exec "$rscript" "$script"
+fi
+
+exec "$rscript" "$tutor" "$@"

@@ -41,49 +41,6 @@ r_version_check <- function(version = getRversion()) {
   check("R", TRUE, sprintf("%s (%s)", shown, os_name()))
 }
 
-# Windows keeps the PATH that new terminals start with in the registry. Claude
-# Code's own shell can find R (it reads ~/.bashrc) while PowerShell, the editor's
-# terminal or a "run" button can't, so check the saved user and system PATH too.
-saved_windows_path <- function() {
-  read <- function(key, hive) {
-    value <- tryCatch(utils::readRegistry(key, hive)$Path, error = function(err) NULL)
-    if (is.null(value)) character(0) else strsplit(value, ";", fixed = TRUE)[[1]]
-  }
-  c(
-    read("Environment", "HKCU"),
-    read("SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment", "HKLM")
-  )
-}
-
-# Lower-case, backslashes, no trailing slash, %VARS% expanded: comparable folders.
-windows_folder <- function(path) {
-  for (var in unique(regmatches(path, gregexpr("%[^%]+%", path))[[1]])) {
-    path <- gsub(var, Sys.getenv(gsub("%", "", var, fixed = TRUE)), path, fixed = TRUE)
-  }
-  tolower(sub("[\\\\]+$", "", gsub("/", "\\", path, fixed = TRUE)))
-}
-
-path_check <- function(os = os_name(), saved = saved_windows_path(),
-                       r_bin = normalizePath(R.home("bin"), winslash = "\\", mustWork = FALSE)) {
-  if (os != "windows") return(NULL)
-  # R.home("bin") is often bin\x64; Rscript.exe is in both it and bin.
-  r_bin <- gsub("\\", "/", r_bin, fixed = TRUE)
-  if (tolower(basename(r_bin)) == "x64") r_bin <- dirname(r_bin)
-  r_bin <- gsub("/", "\\", r_bin, fixed = TRUE)
-  wanted <- c(windows_folder(r_bin), windows_folder(paste0(r_bin, "\\x64")))
-  found <- any(wanted %in% vapply(saved, windows_folder, "", USE.NAMES = FALSE))
-  if (found) return(check("R on PATH", TRUE, "other terminals can find Rscript too"))
-  command <- sprintf(paste0(
-    "[Environment]::SetEnvironmentVariable(\"Path\", ",
-    "[Environment]::GetEnvironmentVariable(\"Path\",\"User\") + \";%s\", \"User\")"
-  ), r_bin)
-  check(
-    "R on PATH", FALSE,
-    "PowerShell and other terminals can't find Rscript yet (only Claude's shell can)",
-    sprintf("in PowerShell, run this once, then close and reopen the app:\n%s", command)
-  )
-}
-
 folder_check <- function(cwd = getwd(), home = path.expand("~")) {
   cwd <- normalizePath(cwd, winslash = "/", mustWork = FALSE)
   home <- normalizePath(home, winslash = "/", mustWork = FALSE)
@@ -189,7 +146,7 @@ where_check <- function(remote = Sys.getenv("CLAUDE_CODE_REMOTE")) {
 
 run_doctor <- function(install_packages = FALSE, cwd = getwd()) {
   steps <- list(
-    where_check, r_version_check, path_check, function() folder_check(cwd), library_check,
+    where_check, r_version_check, function() folder_check(cwd), library_check,
     function() packages_check(install_packages)
   )
   checks <- list()

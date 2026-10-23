@@ -58,27 +58,27 @@ jobs:
       - name: Linux libraries some Bioconductor packages build against
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
-      - name: Save R on the Windows PATH, as students do
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $bin = Split-Path (Get-Command Rscript).Source
-          [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";$bin", "User")
       - name: CLI smoke test from a fresh course folder (base R only)
         run: |
           mkdir -p "$RUNNER_TEMP/compbio" && cd "$RUNNER_TEMP/compbio"
-          T="$GITHUB_WORKSPACE/plugin/skills/compbio-tutor/scripts/tutor.R"
-          Rscript "$T" list
-          Rscript "$T" show t1-revcomp
+          T="$GITHUB_WORKSPACE/plugin/bin/compbio-tutor"
+          "$T" list
+          "$T" show t1-revcomp
           test -f data/t1-revcomp.fasta && test -f work/t1-revcomp.R
-          Rscript "$T" grade t1-revcomp --answer ACGT | grep '"status": "incorrect"'
-          Rscript "$T" hint t1-revcomp | grep 'Hint 1 of 3'
-          Rscript "$T" explain t1-revcomp | grep 'Not yet'
-          Rscript "$T" doctor
+          "$T" grade t1-revcomp --answer ACGT | grep '"status": "incorrect"'
+          "$T" hint t1-revcomp | grep 'Hint 1 of 3'
+          "$T" explain t1-revcomp | grep 'Not yet'
+          { "$T" run work/t1-revcomp.R 2>&1 || true; } | grep -i 'error' # starter has blanks
+          { "$T" run ../outside.R || true; } | grep 'inside the course folder'
+          "$T" doctor
+      - name: The launcher finds R without R on PATH
+        run: |
+          cd "$RUNNER_TEMP/compbio"
+          env PATH="/usr/bin:/bin" "$GITHUB_WORKSPACE/plugin/bin/compbio-tutor" list | grep t1-gc-content
       - name: Install lesson packages the way students do
         run: |
           cd "$RUNNER_TEMP/compbio"
-          Rscript "$GITHUB_WORKSPACE/plugin/skills/compbio-tutor/scripts/tutor.R" doctor --install-packages | tee doctor.txt
+          "$GITHUB_WORKSPACE/plugin/bin/compbio-tutor" doctor --install-packages | tee doctor.txt
           grep 'Everything is ready' doctor.txt
           # The course .Rprofile points R at the packages inside the folder.
           Rscript -e 'library(Biostrings); stopifnot(grepl("compbio", .libPaths()[1]))'

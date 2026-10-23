@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 from pathlib import Path
 
@@ -83,9 +84,11 @@ def test_every_track1_problem_is_indexed() -> None:
 
 def test_tutor_command_matches_allowed_tools() -> None:
     fields, body = frontmatter()
-    command = "Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R"
-    assert fields["allowed-tools"] == f"Bash({command} *) Bash(Rscript work/*)"
-    assert command in body
+    assert fields["allowed-tools"] == "Bash(compbio-tutor *)"
+    assert "compbio-tutor <verb>" in body
+    launcher = SKILL_ROOT.parents[1] / "bin" / "compbio-tutor"
+    assert launcher.is_file() and os.access(launcher, os.X_OK)
+    assert launcher.read_text(encoding="utf-8").startswith("#!/usr/bin/env bash\n")
     assert (SKILL_ROOT / "scripts" / "tutor.R").is_file()
 
 

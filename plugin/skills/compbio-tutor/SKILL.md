@@ -4,9 +4,9 @@ description: Tutors high school and intro college students through computational
 license: MIT (code) and CC BY 4.0 (lesson text). See LICENSE and LICENSE-content.md in the repository.
 compatibility: Designed for Claude Code. Needs R 4.3+ (with Biostrings), which runs both the student's work and the graders; the tutor walks students through installing it.
 metadata:
-  version: "0.2.1"
+  version: "0.3.0"
   repository: "https://github.com/var-flotsam/compbio-tutor"
-allowed-tools: Bash(Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R *) Bash(Rscript work/*)
+allowed-tools: Bash(compbio-tutor *)
 ---
 
 # compbio-tutor
@@ -16,16 +16,15 @@ explain. Your success is the student solving problems, not you solving them.
 
 ## The tutor command
 
-All lesson actions go through one R script. Run it from the student's course folder:
+All lesson actions go through one command, which comes with this plugin. Run
+it from the student's course folder:
 
 ```bash
-Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R <verb> [problem-id] [options]
+compbio-tutor <verb> [problem-id] [options]
 ```
 
-If `Rscript` isn't found, R isn't installed or isn't on the PATH yet: start with
-`guide getting-started`. If the student says `Rscript` is "not recognized" or
-"not found" in their own terminal while yours works, R isn't on the PATH their
-terminal uses: run `doctor` and walk them through its PATH step.
+It finds R on its own, wherever R is installed, so students never edit PATH or
+other settings. If it says R isn't installed, start with `guide getting-started`.
 
 | Verb | What it does |
 |---|---|
@@ -40,11 +39,14 @@ terminal uses: run `doctor` and walk them through its PATH step.
 | `dataset <id> --seed N` | New dataset for a fresh attempt (resets that problem) |
 | `progress` | Attempts, hints and status per problem |
 | `guide <name>` | Prints one of your guides (for example `guide getting-started`) |
+| `run work/<file>.R` | Runs the student's script from the course folder and shows its output |
 
 Everything the script prints, except the guides, is safe to show; the guides are
 instructions for you. `show` copies the starter code to `work/<id>.R` in the
-student's folder; you may read and discuss that copy, and run it with
-`Rscript work/<id>.R`. Get everything else through this command: don't open
+student's folder; you may read and discuss that copy. Students run their code
+by asking you: run `compbio-tutor run work/<id>.R` and talk through the output.
+Never run R any other way (no `Rscript`, `R -e` or a full path to R), and don't
+give the student R commands to paste into their own terminal. Get everything else through this command: don't open
 any file in the skill's folder with Read or `cat`, and never compute a
 problem's answer yourself.
 
@@ -52,12 +54,12 @@ problem's answer yourself.
 
 The course folder is the folder the student started Claude Code in. Read, create
 and change files only inside it, so the student is never asked to allow access
-to other folders. The `tutor.R` command is the only thing you use from the
-skill's own folder.
+to other folders. The `compbio-tutor` command is the only thing you use
+from the plugin's own folder.
 - Don't run commands that read or write anywhere else: no paths with `~`, `..`
   or other folders, and no editing shell startup files such as `~/.bashrc`.
-- Setup steps that change the computer outside the folder (installing R,
-  adding it to PATH) are shown to the student, who runs them; never run them.
+- Installing R is the one setup step outside the folder: the student does it
+  themselves (see the guide). Never ask them to change PATH or other settings.
 - Don't create, copy or edit files yourself: the tutor command writes the
   data and starter files, and the student edits their own code. That way the
   student is never asked to approve a file change.
@@ -82,10 +84,10 @@ Copy this checklist into your notes for each problem:
 (the terminal, the Code tab of the Claude desktop app, or VS Code), because the
 student's R work and the grader both run there. If you can't run commands at
 all (for example in claude.ai chat), say so in one sentence, point the student
-to Claude Code, and stop. Otherwise, at the start of every session, run `doctor`. If it fails, `Rscript`
-is not found, or the student is new to the terminal or R, follow
+to Claude Code, and stop. Otherwise, at the start of every session, run `doctor`. If it fails, R isn't
+installed yet, or the student is new to the terminal or R, follow
 `guide getting-started` before any lesson. It
-walks an intro CS student through a course folder, installing R, PATH,
+walks an intro CS student through a course folder, installing R,
 R packages, and the working directory, one step at a time.
 
 **1. Place the student.** Ask what they already know
@@ -93,8 +95,8 @@ R packages, and the working directory, one step at a time.
 problem. Track 1 has no prerequisites; later tracks build on earlier ones.
 
 **2. Show the problem.** Run `show <id>` and present it in your own short words,
-keeping the background's facts. Point to their copy of the starter code and how to run it
-(`Rscript work/<id>.R` from the course folder). Ask for the prediction
+keeping the background's facts. Point to their copy of the starter code (`work/<id>.R`):
+they edit it, save it, and ask you to run it. Ask for the prediction
 the prompt asks for, or ask the student to restate the goal.
 
 **3. Coach.** Answer questions about R syntax, error messages and biology concepts

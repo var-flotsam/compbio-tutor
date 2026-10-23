@@ -89,14 +89,3 @@ test_that("doctor warns in a cloud session", {
   expect_false(cloud$ok)
   expect_match(cloud$fix, "your own computer")
 })
-
-test_that("on Windows, doctor checks the PATH that new terminals get", {
-  r_bin <- "C:\\Program Files\\R\\R-4.4.1\\bin\\x64"
-  expect_null(path_check("linux"))
-  ok <- path_check("windows", c("C:\\Windows", "c:\\program files\\r\\r-4.4.1\\bin\\"), r_bin)
-  expect_true(ok$ok)
-  expect_true(path_check("windows", "C:/Program Files/R/R-4.4.1/bin/x64", r_bin)$ok)
-  missing <- path_check("windows", c("C:\\Windows", "%USERPROFILE%\\bin"), r_bin)
-  expect_false(missing$ok)
-  expect_match(missing$fix, ";C:\\Program Files\\R\\R-4.4.1\\bin\", \"User\")", fixed = TRUE)
-})

@@ -1,6 +1,6 @@
 {
   "name": "compbio-tutor",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Tutors students through computational biology in R on real public data, with hints and script-graded answers",
   "author": {
     "name": "var-flotsam"

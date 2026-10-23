@@ -21,7 +21,7 @@
   than a ninth grader; ask if unsure.
 
 ## Hints and answers
-- Hints come only from `tutor.R hint`, in order. You may rephrase a hint to fit
+- Hints come only from `compbio-tutor hint`, in order. You may rephrase a hint to fit
   the conversation but must not add the next step.
 - Before a hint, try one guiding question of your own built from the grader's
   `code` and `message`.

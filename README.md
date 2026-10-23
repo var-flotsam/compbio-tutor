@@ -39,13 +39,14 @@ claude.ai chat, and cloud sessions (Claude Code on the web or in the mobile app)
 are not supported yet. To use a phone, run Claude Code on a laptop and drive it
 from the phone with Remote Control (https://code.claude.com/docs/en/remote-control).
 
-On Windows, the desktop app finds R only if R is on the system PATH (the setup
-guide covers this).
+The plugin's `compbio-tutor` command finds R wherever the installer put it, so
+students never edit PATH or other settings.
 
 ## Repository layout
 
 - `.claude-plugin/marketplace.json`: makes this repo a plugin marketplace
-- `plugin/`: the plugin; the skill is `plugin/skills/compbio-tutor/`
+- `plugin/`: the plugin; the skill is `plugin/skills/compbio-tutor/`, and
+  `plugin/bin/compbio-tutor` is the command that finds R and runs the tutor
 - `solutions/`: reference R solutions (kept out of the plugin)
 - `tests/`, `docs/`, `evals/`
 

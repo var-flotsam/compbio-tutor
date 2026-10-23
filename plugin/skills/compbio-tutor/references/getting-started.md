@@ -1,7 +1,7 @@
 # Getting started: from zero to the first lesson
 
-Use this when `tutor.R doctor` reports a problem, `Rscript` isn't found, or the
-student is new. Assume
+Use this when `compbio-tutor doctor` reports a problem, says R isn't installed,
+or the student is new. Assume
 an intro computer science student: they may never have used a terminal,
 installed a programming language, or thought about folders and paths. Teaching
 these is part of the lesson, so explain, then let the student do it.
@@ -10,24 +10,24 @@ these is part of the lesson, so explain, then let the student do it.
 - How to run this part
 - Words to teach along the way
 - Step 1: Install R
-- Step 2: Let the terminal find R (PATH)
-- Step 3: A course folder
-- Step 4: R packages
-- Step 5: First R script and the working directory
-- Step 6: Editing files
+- Step 2: A course folder
+- Step 3: R packages
+- Step 4: First R script and the working directory
+- Step 5: Editing files
 - If something goes wrong
 
 ## How to run this part
-- The tutor command itself runs in R, so first check `Rscript --version`. If
-  that fails, work through steps 1-2. Once it works, run `tutor.R doctor` and fix
-  **only the first** failing item, then run `doctor` again. One step per turn.
+- Run `compbio-tutor doctor`. If it says R isn't installed, start at step 1.
+  Otherwise fix **only the first** failing item, then run `doctor` again. One
+  step per turn. Students never need to change PATH or other settings: the
+  `compbio-tutor` command finds R wherever the installer put it.
 - For each step: say what it is and why it's needed (one or two sentences), give
   the exact command or click path, ask the student to do it and tell you what
   happened.
 - The student types terminal commands themselves where it's safe, because this
   is a skill they're learning. You may run read-only checks inside the course
-  folder (`doctor`, `pwd`, `ls`, `Rscript --version`) yourself. Anything that
-  looks at or changes other folders (steps 1-3) is for the student to run. Ask before running anything that installs
+  folder (`doctor`, `pwd`, `ls`) yourself. Installing R and making the course
+  folder (steps 1-2) are for the student to do. Ask before running anything that installs
   software, and never use `sudo` or administrator commands on the student's
   behalf: show the command and let them run it.
 - If the student is on a school-managed computer and an install is blocked,
@@ -43,17 +43,16 @@ Introduce each when it first matters, in one sentence:
   `~/Documents/compbio/data/t1-gc-content.fasta`. `~` means your home folder.
 - **Working directory**: the folder a program is "standing in". Relative paths
   such as `data/x.fasta` are looked up from there.
-- **PATH**: the list of folders the terminal searches for programs.
 - **Package**: an add-on to R written by other people. Biostrings knows about DNA.
 
 ## Step 1: Install R
-Why: R is the programming language for every lesson, and `Rscript` is the
-program that runs an R file. The tutor's answer checker is written in R too.
+Why: R is the programming language for every lesson. The tutor's answer
+checker is written in R too.
 
 First find out which computer they have (ask, or run `uname -s`: `Darwin` is a
 Mac, `MINGW...` or `MSYS...` is Windows with Git Bash, `Linux` is Linux).
-- **Windows**: `winget install --id RProject.R -e`, or download the installer
-  from https://cran.r-project.org/bin/windows/base/ and accept the defaults.
+- **Windows**: download the installer from
+  https://cran.r-project.org/bin/windows/base/ and accept the defaults.
 - **macOS**: download the `.pkg` from https://cran.r-project.org/bin/macosx/
   for their chip (`uname -m` prints `arm64` for Apple silicon, `x86_64` for
   Intel), open it and click through the installer.
@@ -61,31 +60,10 @@ Mac, `MINGW...` or `MSYS...` is Windows with Git Bash, `Linux` is Linux).
   (the second package lets R build Biostrings' helpers) (the student runs
   it); other systems: https://cran.r-project.org/.
 
-After installing, the terminal must be restarted to notice R: `/exit`, close the
-terminal window, open a new one, `cd` back to the folder they were in, `claude`,
-then `/compbio-tutor:compbio-tutor`. Tell them these steps before they leave.
-Check: `Rscript --version` prints a version 4.3 or newer.
+No restart or PATH change is needed afterwards: run `compbio-tutor doctor`
+again, and it finds the new R by itself.
 
-## Step 2: Let the terminal find R (PATH)
-Mostly on Windows: the R installer doesn't add R to PATH, so `Rscript` is "not
-found" even though R is installed. Explain what PATH is, then have the student
-find R's folder and run the line themselves (these touch files outside the
-course folder, so you show them and don't run them):
-- **Windows**: set R's folder in the Windows PATH itself, so every terminal
-  finds it: PowerShell, Git Bash, the editor's terminal and the app's "run"
-  buttons. (Editing `~/.bashrc` only fixes Git Bash, which is why `doctor`
-  checks the Windows setting.) If `doctor` runs, it prints the exact command.
-  Otherwise the student runs `ls "C:\Program Files\R"` to see their version,
-  then in PowerShell, with their version:
-  `[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";C:\Program Files\R\R-4.4.1\bin", "User")`
-  Or by clicking: Start, "Edit environment variables for your account", `Path`,
-  New, the same folder. Then quit and reopen the terminal or the app.
-- **macOS**: R lives in `/Library/Frameworks/R.framework/Resources/bin`. Have
-  them run `echo 'export PATH="$PATH:/Library/Frameworks/R.framework/Resources/bin"' >> ~/.zshrc`
-Then restart the terminal and Claude Code as in step 1, and check
-`Rscript --version` again.
-
-## Step 3: A course folder
+## Step 2: A course folder
 Why: keeping every file for the course in one folder means R and the tutor can
 always find the data, and nothing gets mixed up with other files.
 
@@ -100,7 +78,7 @@ exactly what to type when they come back. Steps:
 5. `claude` starts Claude Code here. Then type `/compbio-tutor:compbio-tutor`
    and press Enter to bring the tutor back.
 
-If R also needs installing, do this step at the same restart. Whenever setup
+Whenever setup
 needs a restart, give the student these steps and the
 `/compbio-tutor:compbio-tutor` command to type when they return; a new Claude
 Code session doesn't remember this conversation, but `doctor` picks up where
@@ -109,8 +87,8 @@ setup left off.
 On Windows (Git Bash), `~/Documents` is the student's Documents folder too.
 If OneDrive manages Documents, any folder they can find again is fine.
 
-## Step 4: R packages
-Run `tutor.R doctor --install-packages` (ask first; it downloads and can take a
+## Step 3: R packages
+Run `compbio-tutor doctor --install-packages` (ask first; it downloads and can take a
 few minutes). It installs Biostrings from Bioconductor, the standard source of
 biology packages for R, into `.compbio-tutor/library` inside the course folder,
 so nothing outside the folder changes. `doctor` also writes a two-line
@@ -119,7 +97,7 @@ tells R to use the course's packages. Explain this in a sentence if the student
 asks what the new files are. If it fails, show the student the last lines of the
 output and suggest they share them with their teacher.
 
-## Step 5: First R script and the working directory
+## Step 4: First R script and the working directory
 Before lesson 1, have the student run one script so they see how it works:
 1. Make a folder for their code: `mkdir -p work`.
 2. Create `work/hello.R` containing:
@@ -127,14 +105,14 @@ Before lesson 1, have the student run one script so they see how it works:
    print("Hello from R")
    getwd()
    ```
-   (The student makes the file in their editor, step 6; you don't write it, so
+   (The student makes the file in their editor, step 5; you don't write it, so
    they never get a permission prompt.)
-3. Run it from the course folder: `Rscript work/hello.R`.
+3. Run it for them with `compbio-tutor run work/hello.R` and show the output.
 4. Ask: what folder did `getwd()` print, and why? (It's the folder they ran the
    command from: their working directory.) Then explain that the lessons read
    files like `data/t1-gc-content.fasta`, which only works when the working
-   directory is the course folder. That's why every lesson runs
-   `Rscript work/<problem>.R` from `~/Documents/compbio`.
+   directory is the course folder. That's why every lesson
+   runs from `~/Documents/compbio`.
 5. Respond to their answer before moving on: confirm what they got right, fix
    any misunderstanding, and only then start placing them in a lesson.
 
@@ -142,16 +120,16 @@ If the student uses RStudio, they should open the course folder as a project
 (File > New Project > Existing Directory > the course folder), so the working
 directory and the course's packages are both set. Check with `getwd()`.
 
-## Step 6: Editing files
+## Step 5: Editing files
 Students edit their starter code in `work/`. Use the editor their class uses. If
 they have none, suggest Visual Studio Code (free, https://code.visualstudio.com/)
 and opening the course folder in it (File > Open Folder). Remind them to save
 before running a script.
 
 ## If something goes wrong
-- "command not found": the program isn't installed or isn't on PATH (steps 1-2).
-- "cannot open file 'data/...': No such file": wrong working directory (step 5)
-  or the lesson hasn't been shown yet (`tutor.R show <id>` writes the data).
+- "R isn't installed": step 1.
+- "cannot open file 'data/...': No such file": wrong working directory (step 4)
+  or the lesson hasn't been shown yet (`compbio-tutor show <id>` writes the data).
 - Permission errors when installing: a school-managed computer may block
   installs; ask the teacher.
 - Anything else: copy the exact error message, read it together line by line,
