@@ -4,7 +4,7 @@ description: Tutors high school and intro college students through computational
 license: MIT (code) and CC BY 4.0 (lesson text). See LICENSE and LICENSE-content.md in the repository.
 compatibility: Designed for Claude Code. Needs R 4.3+ (with Biostrings), which runs both the student's work and the graders; the tutor walks students through installing it.
 metadata:
-  version: "0.1.0"
+  version: "0.2.0"
   repository: "https://github.com/var-flotsam/compbio-tutor"
 allowed-tools: Bash(Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R *) Bash(Rscript work/*)
 ---
