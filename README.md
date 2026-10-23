@@ -30,6 +30,18 @@ Phase 7.
    walks you through everything else: a folder for the course, installing R,
    R packages, and your first R script.
 
+### Where it runs
+
+The tutor runs in Claude Code on the student's own computer: the terminal, the
+Code tab of the Claude desktop app, or the VS Code extension. Lessons need R on
+that computer and a course folder to keep work in. It does not work in regular
+claude.ai chat, and cloud sessions (Claude Code on the web or in the mobile app)
+are not supported yet. To use a phone, run Claude Code on a laptop and drive it
+from the phone with Remote Control (https://code.claude.com/docs/en/remote-control).
+
+On Windows, the desktop app finds R only if R is on the system PATH (the setup
+guide covers this).
+
 ## Repository layout
 
 - `.claude-plugin/marketplace.json`: makes this repo a plugin marketplace

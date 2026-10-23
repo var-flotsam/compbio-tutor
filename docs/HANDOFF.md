@@ -23,6 +23,11 @@ Current state of the compbio-tutor project, kept current after each phase.
   the Read tool; allowed-tools also covers `Rscript work/*`. Checked in a live
   multi-turn session with only `Skill` allowed: no prompts. Pre-approvals don't
   survive `claude --resume` in a new process; students re-type the slash command.
+- Surfaces (2026-10-23, from current docs): works in Claude Code on the student's
+  computer (terminal, desktop app Code tab, VS Code). Not in claude.ai chat (no R,
+  no CRAN, no folder). Cloud sessions (web/mobile) not supported: no plugin install,
+  R only via setup script + custom network allowlist, files lost unless committed;
+  `doctor` flags `CLAUDE_CODE_REMOTE=true`. Phone use: Remote Control to a laptop.
 - Phases 5-7: not started.
 
 ## Where things are

@@ -132,9 +132,21 @@ packages_check <- function(install = FALSE) {
 }
 
 # Stops at the first failure, so nothing is written until the folder is right.
+# Cloud sessions (Claude Code on the web or the mobile app) throw files away when
+# they end, so a student's work there is lost unless it is committed to git.
+where_check <- function(remote = Sys.getenv("CLAUDE_CODE_REMOTE")) {
+  if (identical(tolower(remote), "true")) {
+    return(check(
+      "Where Claude runs", FALSE, "a cloud session, which deletes your files when it ends",
+      "run the lessons in Claude Code on your own computer (terminal, desktop app or VS Code)."
+    ))
+  }
+  check("Where Claude runs", TRUE, "this computer")
+}
+
 run_doctor <- function(install_packages = FALSE, cwd = getwd()) {
   steps <- list(
-    r_version_check, function() folder_check(cwd), library_check,
+    where_check, r_version_check, function() folder_check(cwd), library_check,
     function() packages_check(install_packages)
   )
   checks <- list()

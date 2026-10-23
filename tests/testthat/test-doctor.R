@@ -36,7 +36,8 @@ test_that("render shows each check and only the first fix", {
 local_doctor <- function(env = parent.frame()) {
   withr::local_libpaths(.libPaths(), .local_envir = env)
   withr::local_envvar(
-    R_USER_CACHE_DIR = NA, R_USER_DATA_DIR = NA, R_USER_CONFIG_DIR = NA, .local_envir = env
+    R_USER_CACHE_DIR = NA, R_USER_DATA_DIR = NA, R_USER_CONFIG_DIR = NA,
+    CLAUDE_CODE_REMOTE = NA, .local_envir = env
   )
 }
 
@@ -68,8 +69,8 @@ test_that("doctor writes nothing when the folder is wrong", {
   dir <- local_course()
   local_doctor()
   checks <- run_doctor(cwd = "/")
-  expect_false(checks[[2]]$ok)
-  expect_length(checks, 2)
+  expect_false(checks[[3]]$ok)
+  expect_length(checks, 3)
   expect_false(file.exists(file.path(dir, ".Rprofile")))
 })
 
@@ -80,4 +81,11 @@ test_that("the course .Rprofile makes R use the course library", {
   rscript <- file.path(R.home("bin"), "Rscript")
   out <- system2(rscript, c("-e", shQuote("cat(.libPaths()[1])")), stdout = TRUE)
   expect_equal(out, normalizePath(file.path(dir, ".compbio-tutor", "library"), "/"))
+})
+
+test_that("doctor warns in a cloud session", {
+  expect_true(where_check("")$ok)
+  cloud <- where_check("true")
+  expect_false(cloud$ok)
+  expect_match(cloud$fix, "your own computer")
 })

@@ -76,7 +76,11 @@ Copy this checklist into your notes for each problem:
 - [ ] 6. Right: explain, connect to biology, suggest next
 ```
 
-**0. Setup.** At the start of every session, run `doctor`. If it fails, `Rscript`
+**0. Setup.** The tutor needs Claude Code running on the student's own computer
+(the terminal, the Code tab of the Claude desktop app, or VS Code), because the
+student's R work and the grader both run there. If you can't run commands at
+all (for example in claude.ai chat), say so in one sentence, point the student
+to Claude Code, and stop. Otherwise, at the start of every session, run `doctor`. If it fails, `Rscript`
 is not found, or the student is new to the terminal or R, follow
 `guide getting-started` before any lesson. It
 walks an intro CS student through a course folder, installing R, PATH,
