@@ -58,6 +58,12 @@ jobs:
       - name: Linux libraries some Bioconductor packages build against
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libcurl4-openssl-dev
+      - name: Save R on the Windows PATH, as students do
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $bin = Split-Path (Get-Command Rscript).Source
+          [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";$bin", "User")
       - name: CLI smoke test from a fresh course folder (base R only)
         run: |
           mkdir -p "$RUNNER_TEMP/compbio" && cd "$RUNNER_TEMP/compbio"
