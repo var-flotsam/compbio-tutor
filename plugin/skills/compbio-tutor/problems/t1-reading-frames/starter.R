@@ -21,4 +21,5 @@ frames <- c(
   "-3" = ___
 )
 frames
-names(frames)[___]  # the frames with no "*"
+answer <- names(frames)[___]  # the frames with no "*"
+answer

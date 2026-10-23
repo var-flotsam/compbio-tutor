@@ -42,6 +42,22 @@ Current state of the compbio-tutor project, kept current after each phase.
   solved or not done yet, and the tutor offers an unsolved one first. Index:
   `references/track0-r-basics.md`. Data frames and plotting are still to come,
   added as R basics when tracks 2-3 are built. Version 0.4.0.
+- Positron (Ethan, 2026-10-23: "Let's build it for Positron"; design:
+  /mnt/project-files/compbio-tutor/designs/positron-workspace.md). Students write
+  and run R in Positron with Claude Code in its side panel; the tutor reads
+  `work/<id>.R` and never edits it. Ethan confirmed: grade from the script (every
+  starter ends with `answer <- ...`; `grade <id> --from-script work/<id>.R` sources
+  it in a fresh R via `scripts/answer_runner.R`), check only when asked, Positron
+  only with the terminal as fallback, and send students in the Claude desktop app
+  to Positron (`doctor`'s "Where you write R" check reads `CLAUDE_CODE_ENTRYPOINT`).
+  A plugin PreToolUse hook (`plugin/hooks/guard.sh`) denies Edit/Write/Bash writes
+  to `work/`, `data/` and `.compbio-tutor/` in course folders, in any permission
+  mode (the extension starts in Auto). Positron's default extension gallery is
+  Posit's P3M (mirrors Open VSX); the guide falls back to the Open VSX setting.
+  Trial: `evals/transcripts/trial-5-positron-check.md`. Version 0.5.0.
+  To verify in Ethan's Positron trial: the extension is listed by default; the
+  course `.Rprofile` loads in Positron's console; whether a `POSITRON*` env var
+  reaches the panel's Bash (doctor then says "Positron"); Windows.
 - Phases 5-7: not started.
 
 ## Where things are

@@ -25,4 +25,5 @@ find_orfs <- function(s) {
 
 all_orfs <- c(find_orfs(seq), find_orfs(as.character(reverseComplement(DNAString(seq)))))
 longest <- all_orfs[which.max(nchar(all_orfs))]
-cat(as.character(translate(DNAString(longest))), "\n")
+answer <- as.character(translate(DNAString(longest)))
+answer

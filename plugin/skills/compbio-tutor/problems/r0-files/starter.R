@@ -11,4 +11,5 @@ seq_lines <- lines[___]
 seq <- ___
 
 # 3. How many bases?
-___
+answer <- ___
+answer

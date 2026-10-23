@@ -86,7 +86,7 @@ test_that("grade reads long answers from a file", {
     res <- run_cli("grade", "t1-revcomp", "--answer-file", "../x.txt"), "inside the course folder"
   )
   expect_equal(res$status, 1L)
-  expect_message(res <- run_cli("grade", "t1-revcomp"), "needs --answer")
+  expect_message(res <- run_cli("grade", "t1-revcomp"), "--answer TEXT")
   expect_equal(res$status, 2L)
 })
 
@@ -215,4 +215,21 @@ test_that("guide prints the tutor's own guides by name only", {
   expect_match(res$out, "# Getting started", fixed = TRUE)
   expect_message(res <- run_cli("guide", "../SKILL"), "Unknown guide")
   expect_equal(res$status, 1L)
+})
+
+test_that("grade --from-script explains blanks, a missing answer and outside files", {
+  local_course()
+  run_cli("show", "r0-variables")
+  expect_message(res <- run_cli("grade", "r0-variables", "--from-script", "work/r0-variables.R"), "error")
+  expect_equal(res$status, 1L)
+  writeLines("x <- 1", "work/r0-variables.R")
+  expect_message(
+    res <- run_cli("grade", "r0-variables", "--from-script", "work/r0-variables.R"), "answer <- "
+  )
+  expect_equal(res$status, 1L)
+  expect_message(res <- run_cli("grade", "r0-variables", "--from-script", "../x.R"), "inside the course")
+  expect_equal(res$status, 2L)
+  writeLines("answer <- 0.5", "work/r0-variables.R")
+  res <- run_cli("grade", "r0-variables", "--from-script", "work/r0-variables.R")
+  expect_match(res$out, '"attempts": 1', fixed = TRUE)
 })

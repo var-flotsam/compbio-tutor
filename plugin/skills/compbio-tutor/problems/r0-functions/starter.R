@@ -16,4 +16,5 @@ for (s in seqs) {
     count <- count + 1
   }
 }
-count
+answer <- count
+answer

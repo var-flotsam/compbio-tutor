@@ -14,4 +14,5 @@ aa <- GENETIC_CODE[codons]
 
 # 3. Keep the amino acids before the first stop ("*") and join them.
 protein <- ___
-protein
+answer <- protein
+answer

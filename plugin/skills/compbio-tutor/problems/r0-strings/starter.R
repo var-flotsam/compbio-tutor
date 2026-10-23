@@ -11,4 +11,5 @@ nchar(seq)
 part <- ___
 
 # 3. In capital letters.
-___
+answer <- ___
+answer

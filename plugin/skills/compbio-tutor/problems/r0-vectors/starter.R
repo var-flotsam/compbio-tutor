@@ -11,4 +11,5 @@ is_long <- ___
 print(is_long)
 
 # 3. Count the TRUE values.
-___
+answer <- ___
+answer

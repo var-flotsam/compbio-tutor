@@ -14,4 +14,5 @@ aa <- GENETIC_CODE[codons]
 
 # 3. Keep the amino acids before the first stop ("*") and join them.
 protein <- paste(aa[seq_len(which(aa == "*")[1] - 1)], collapse = "")
-cat(protein, "\n")
+answer <- protein
+answer

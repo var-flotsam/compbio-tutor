@@ -8,4 +8,4 @@ paired <- chartr("ACGT", "TGCA", seq)
 
 # 2. Write the result 5' to 3'.
 answer <- paste(rev(strsplit(paired, "")[[1]]), collapse = "")
-cat(answer, "\n")
+answer

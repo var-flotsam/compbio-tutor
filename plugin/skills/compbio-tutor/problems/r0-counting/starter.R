@@ -12,4 +12,5 @@ counts <- ___
 print(counts)
 
 # 3. How many times does the most common base appear?
-___
+answer <- ___
+answer

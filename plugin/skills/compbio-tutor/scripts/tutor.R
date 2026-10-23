@@ -5,6 +5,7 @@
 #   Rscript tutor.R list
 #   Rscript tutor.R show <problem-id>
 #   Rscript tutor.R dataset <problem-id> [--seed N]
+#   Rscript tutor.R grade <problem-id> --from-script work/<problem-id>.R
 #   Rscript tutor.R grade <problem-id> --answer TEXT   (or --answer-file PATH)
 #   Rscript tutor.R hint <problem-id>
 #   Rscript tutor.R explain <problem-id> [--student-asked]

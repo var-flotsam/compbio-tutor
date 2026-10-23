@@ -42,6 +42,9 @@ Revised the same day for those answers. Students use R in all three tracks
 
 ## 2. Who uses it, and where
 
+Update 2026-10-23: students write R in Positron with Claude Code in its side
+panel; see the Positron note in `docs/HANDOFF.md`.
+
 **Students:** ages roughly 15-20. They write **R** (no prior coding assumed;
 Track 0 "R basics" teaches the R the course uses, and each problem lists the R
 basics it needs so the tutor can offer them just in time). Track 3 assumes tracks 1-2 or

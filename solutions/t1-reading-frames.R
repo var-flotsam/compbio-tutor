@@ -20,4 +20,5 @@ frames <- c(
   "-2" = translate_codons(substring(rc, 2)),
   "-3" = translate_codons(substring(rc, 3))
 )
-cat(paste(names(frames)[!grepl("*", frames, fixed = TRUE)], collapse = ", "), "\n")
+answer <- names(frames)[!grepl("*", frames, fixed = TRUE)]
+answer

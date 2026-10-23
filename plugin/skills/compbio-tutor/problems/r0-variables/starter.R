@@ -12,4 +12,5 @@ g <- ___
 total <- ___
 
 # 3. The fraction of bases that are G, rounded to 4 decimal places.
-round(___, 4)
+answer <- round(___, 4)
+answer

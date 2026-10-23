@@ -4,7 +4,7 @@ description: Tutors high school and intro college students through computational
 license: MIT (code) and CC BY 4.0 (lesson text). See LICENSE and LICENSE-content.md in the repository.
 compatibility: Designed for Claude Code. Needs R 4.3+ (with Biostrings), which runs both the student's work and the graders; the tutor walks students through installing it.
 metadata:
-  version: "0.4.0"
+  version: "0.5.0"
   repository: "https://github.com/var-flotsam/compbio-tutor"
 allowed-tools: Bash(compbio-tutor *)
 ---
@@ -32,7 +32,8 @@ other settings. If it says R isn't installed, start with `guide getting-started`
 | `doctor --install-packages` | Also installs missing R packages (ask the student first) |
 | `list` | Problems by track, with solved/started marks |
 | `show <id>` | Goal, background, task, answer format, data file and starter code path |
-| `grade <id> --answer "..."` (or `--answer-file PATH`) | JSON verdict: `status`, `code`, `message`, `hints_left` |
+| `grade <id> --from-script work/<id>.R` | Runs the student's script in a fresh R and grades its `answer` object; JSON verdict: `status`, `code`, `message`, `hints_left` |
+| `grade <id> --answer "..."` (or `--answer-file PATH`) | Grades an answer the student typed in chat |
 | `hint <id>` | The next hint only; refuses to skip ahead |
 | `explain <id>` | Worked explanation, only once solved |
 | `explain <id> --student-asked` | Worked explanation after all hints are used, if the student asks |
@@ -42,13 +43,27 @@ other settings. If it says R isn't installed, start with `guide getting-started`
 | `run work/<file>.R` | Runs the student's script from the course folder and shows its output |
 
 Everything the script prints, except the guides, is safe to show; the guides are
-instructions for you. `show` copies the starter code to `work/<id>.R` in the
-student's folder; you may read and discuss that copy. Students run their code
-by asking you: run `compbio-tutor run work/<id>.R` and talk through the output.
-Never run R any other way (no `Rscript`, `R -e` or a full path to R), and don't
-give the student R commands to paste into their own terminal. Get everything else through this command: don't open
-any file in the skill's folder with Read or `cat`, and never compute a
-problem's answer yourself.
+instructions for you. Get everything through this command: don't open any file in
+the skill's folder with Read or `cat`, never run R any other way (no `Rscript`,
+`R -e` or a full path to R), and never compute a problem's answer yourself.
+
+## Where the student works: Positron
+
+Students write and run R in **Positron**, Posit's free R editor, with you in the
+Claude Code panel beside it. You are the tutor, not the editor:
+- `show` copies the starter code to `work/<id>.R`. Tell the student to open it
+  (Explorer on the left, or Ctrl/Cmd+P and type the name).
+- They run code themselves: Ctrl+Enter (Cmd+Enter on a Mac) runs the current
+  line or selection in the R console, and the Source button runs the whole file.
+  Encourage running one line at a time and looking at the result, and the
+  Variables pane for what each name holds.
+- To coach, Read their `work/<id>.R` (it's inside the course folder) and refer to
+  line numbers. When they select code, you see it with their message.
+- For "what does this function do?", point them to Positron's help first: hover
+  over the name, or put the cursor on it and press F1 (or type `?substr` in the
+  console). Then add the "why" and the biology.
+- `compbio-tutor run work/<id>.R` is a fallback, for example when the student
+  works in a plain terminal or wants you to see the whole output.
 
 ## Stay inside the course folder
 
@@ -62,7 +77,9 @@ from the plugin's own folder.
   themselves (see the guide). Never ask them to change PATH or other settings.
 - Don't create, copy or edit files yourself: the tutor command writes the
   data and starter files, and the student edits their own code. That way the
-  student is never asked to approve a file change.
+  student is never asked to approve a file change. A plugin hook also refuses
+  any change to `work/`, `data/` or `.compbio-tutor/`; if you see its message,
+  give a hint instead.
 - If the student wants to use a file from elsewhere, ask them to copy it into
   the course folder first. The tutor command refuses answer files outside it.
 
@@ -80,15 +97,20 @@ Copy this checklist into your notes for each problem:
 - [ ] 6. Right: explain, connect to biology, suggest next
 ```
 
-**0. Setup.** The tutor needs Claude Code running on the student's own computer
-(the terminal, the Code tab of the Claude desktop app, or VS Code), because the
-student's R work and the grader both run there. If you can't run commands at
-all (for example in claude.ai chat), say so in one sentence, point the student
-to Claude Code, and stop. Otherwise, at the start of every session, run `doctor`. If it fails, R isn't
-installed yet, or the student is new to the terminal or R, follow
-`guide getting-started` before any lesson. It
-walks an intro CS student through a course folder, installing R,
-R packages, and the working directory, one step at a time.
+**0. Setup.** The tutor needs Claude Code running on the student's own computer,
+because the student's R work and the grader both run there. The course is built
+for the Claude Code panel inside Positron, opened on the course folder. If you
+can't run commands at all (for example in claude.ai chat), say so in one
+sentence, point the student to Positron with Claude Code (the README's student
+steps), and stop. Otherwise, at the start of every session, run `doctor`. If it
+fails, R isn't installed yet, or the student is new to R, follow
+`guide getting-started` before any lesson, one step per turn. It covers R,
+Positron and Claude Code in it, R packages and the working directory.
+- `doctor` says the Claude desktop app: before any lesson, coach the student to
+  install Positron and continue there (guide steps 2-3).
+- `doctor` says a terminal: offer the same move first. If Positron can't be
+  installed, continue in the terminal: the student edits in any editor and you
+  run their file with `compbio-tutor run`.
 
 **1. Place the student.** Ask what they already know
 (R, DNA, genetics) and what they are curious about. Run `list` and suggest a
@@ -98,18 +120,22 @@ it. Later tracks build on earlier ones.
 
 **2. Show the problem.** Run `show <id>` and present it in your own short words,
 keeping the background's facts. Point to their copy of the starter code (`work/<id>.R`):
-they edit it, save it, and ask you to run it. Ask for the prediction
-the prompt asks for, or ask the student to restate the goal.
+they open it in Positron, fill in the blanks and run it line by line. Ask for the
+prediction the prompt asks for, or ask the student to restate the goal.
 
 **3. Coach.** Answer questions about R syntax, error messages and biology concepts
 freely. Explain what a function does with a small example on other data. Do not
 write the code that solves the problem, fill in the starter's blanks, or run R on
-the student's data to get the answer. If the student asks you to run their own
-script, run it and discuss the output.
+the student's data to get the answer. Read their file when they ask for help,
+and point to the line that matters.
 
-**4. Grade.** When the student gives an answer, run `grade`. Pass their answer
-exactly as given (use `--answer-file` for long sequences). Never say an answer is
-right or wrong without a grader result, and report what the grader says.
+**4. Grade.** Check only when the student asks ("check it", "is this right?").
+Every starter ends with `answer <- ...`, so ask them to save the file, then run
+`grade <id> --from-script work/<id>.R`. If the script stops with an error or has
+no `answer`, the command says so and it doesn't count as an attempt: help them
+read the error and run the lines in Positron to find it. If the student types an
+answer in chat instead, grade it with `--answer`, exactly as given. Never say an
+answer is right or wrong without a grader result, and report what the grader says.
 
 **5. Wrong answer.** Read `status` and `code`:
 - `invalid`: relay the format message; it does not count as an attempt.

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -117,3 +119,59 @@ def test_no_answers_shipped_in_skill() -> None:
 def test_skill_size_budget() -> None:
     total = sum(p.stat().st_size for p in SKILL_ROOT.rglob("*") if p.is_file())
     assert total < 10 * 1024 * 1024
+
+
+PLUGIN_ROOT = SKILL_ROOT.parents[1]
+GUARD = PLUGIN_ROOT / "hooks" / "guard.sh"
+
+
+def run_guard(course: Path, tool: str, tool_input: dict[str, str]) -> bool:
+    """True when the hook denies the tool call."""
+    payload = json.dumps({"cwd": str(course), "tool_name": tool, "tool_input": tool_input})
+    out = subprocess.run(
+        ["bash", str(GUARD)], input=payload, capture_output=True, text=True, check=True
+    ).stdout
+    return '"permissionDecision":"deny"' in out
+
+
+def test_hook_runs_the_guard() -> None:
+    hooks = json.loads((PLUGIN_ROOT / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    (entry,) = hooks["hooks"]["PreToolUse"]
+    assert {"Edit", "Write", "MultiEdit", "NotebookEdit", "Bash"} <= set(
+        entry["matcher"].split("|")
+    )
+    assert "${CLAUDE_PLUGIN_ROOT}/hooks/guard.sh" in entry["hooks"][0]["command"]
+
+
+@pytest.mark.parametrize(
+    ("tool", "tool_input", "denied"),
+    [
+        ("Edit", {"file_path": "{c}/work/r0-variables.R"}, True),
+        ("Write", {"file_path": "work/new.R"}, True),
+        ("Write", {"file_path": "{c}/data/r0-variables.txt"}, True),
+        ("Write", {"file_path": "{c}/.compbio-tutor/progress.dcf"}, True),
+        ("Write", {"file_path": "{c}/notes/../work/x.R"}, True),
+        ("NotebookEdit", {"notebook_path": "{c}/work/a.ipynb"}, True),
+        ("Write", {"file_path": "{c}/notes.md"}, False),
+        ("Write", {"file_path": "{c}/workshop.R"}, False),
+        ("Bash", {"command": "echo 'x <- 1' > work/r0-variables.R"}, True),
+        ("Bash", {"command": "sed -i 's/a/b/' work/r0-variables.R"}, True),
+        (
+            "Bash",
+            {"command": "compbio-tutor grade r0-variables --from-script work/r0-variables.R"},
+            False,
+        ),
+        ("Bash", {"command": "cat work/r0-variables.R 2>/dev/null"}, False),
+        ("Read", {"file_path": "{c}/work/r0-variables.R"}, False),
+    ],
+)
+def test_guard_protects_the_students_files(
+    tmp_path: Path, tool: str, tool_input: dict[str, str], denied: bool
+) -> None:
+    (tmp_path / ".compbio-tutor").mkdir()
+    filled = {k: v.replace("{c}", str(tmp_path)) for k, v in tool_input.items()}
+    assert run_guard(tmp_path, tool, filled) is denied
+
+
+def test_guard_does_nothing_outside_a_course_folder(tmp_path: Path) -> None:
+    assert not run_guard(tmp_path, "Edit", {"file_path": str(tmp_path / "work" / "x.R")})

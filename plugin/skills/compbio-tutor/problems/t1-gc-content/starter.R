@@ -15,4 +15,5 @@ counts <- ___
 
 # 4. GC content = (G + C) / total length.
 gc <- ___
-round(gc, 4)
+answer <- round(gc, 4)
+answer

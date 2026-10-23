@@ -144,9 +144,32 @@ where_check <- function(remote = Sys.getenv("CLAUDE_CODE_REMOTE")) {
   check("Where Claude runs", TRUE, "this computer")
 }
 
+# The course is built for Positron: the student writes R there with Claude Code in
+# a side panel. The Claude desktop app can't sit beside the student's code, so it
+# is sent to Positron; a plain terminal still works as a fallback.
+editor_check <- function(entrypoint = Sys.getenv("CLAUDE_CODE_ENTRYPOINT"),
+                         env_names = names(Sys.getenv())) {
+  name <- "Where you write R"
+  if (entrypoint %in% c("claude-desktop", "claude-desktop-3p", "local-agent")) {
+    return(check(
+      name, FALSE, "the Claude desktop app, which can't sit next to your R code",
+      paste(
+        "install Positron and open this course folder in it, then use Claude Code in",
+        "Positron's side panel (guide getting-started, steps 2-3)."
+      )
+    ))
+  }
+  if (identical(entrypoint, "claude-vscode")) {
+    in_positron <- any(startsWith(env_names, "POSITRON"))
+    where <- if (in_positron) "Positron" else "an editor panel (Positron or VS Code)"
+    return(check(name, TRUE, where))
+  }
+  check(name, TRUE, "a terminal; Positron is recommended (guide getting-started, step 2)")
+}
+
 run_doctor <- function(install_packages = FALSE, cwd = getwd()) {
   steps <- list(
-    where_check, r_version_check, function() folder_check(cwd), library_check,
+    where_check, r_version_check, editor_check, function() folder_check(cwd), library_check,
     function() packages_check(install_packages)
   )
   checks <- list()

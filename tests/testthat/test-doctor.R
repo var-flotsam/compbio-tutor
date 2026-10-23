@@ -37,7 +37,7 @@ local_doctor <- function(env = parent.frame()) {
   withr::local_libpaths(.libPaths(), .local_envir = env)
   withr::local_envvar(
     R_USER_CACHE_DIR = NA, R_USER_DATA_DIR = NA, R_USER_CONFIG_DIR = NA,
-    CLAUDE_CODE_REMOTE = NA, .local_envir = env
+    CLAUDE_CODE_REMOTE = NA, CLAUDE_CODE_ENTRYPOINT = NA, .local_envir = env
   )
 }
 
@@ -69,8 +69,8 @@ test_that("doctor writes nothing when the folder is wrong", {
   dir <- local_course()
   local_doctor()
   checks <- run_doctor(cwd = "/")
-  expect_false(checks[[3]]$ok)
-  expect_length(checks, 3)
+  expect_false(checks[[4]]$ok)
+  expect_length(checks, 4)
   expect_false(file.exists(file.path(dir, ".Rprofile")))
 })
 
@@ -88,4 +88,16 @@ test_that("doctor warns in a cloud session", {
   cloud <- where_check("true")
   expect_false(cloud$ok)
   expect_match(cloud$fix, "your own computer")
+})
+
+test_that("doctor sends the desktop app to Positron and accepts editors and terminals", {
+  desktop <- editor_check("claude-desktop")
+  expect_false(desktop$ok)
+  expect_match(desktop$fix, "Positron")
+  expect_true(editor_check("claude-vscode", c("PATH", "POSITRON_VERSION"))$ok)
+  expect_match(editor_check("claude-vscode", c("PATH", "POSITRON_VERSION"))$detail, "^Positron$")
+  expect_match(editor_check("claude-vscode", "PATH")$detail, "Positron or VS Code")
+  terminal <- editor_check("cli")
+  expect_true(terminal$ok)
+  expect_match(terminal$detail, "Positron is recommended")
 })

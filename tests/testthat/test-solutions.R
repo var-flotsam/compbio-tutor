@@ -1,6 +1,6 @@
-# Run each reference solution with Rscript, as a student would, and grade it.
+# Run each reference solution the way the tutor checks a student's work: copy it
+# to work/<id>.R and grade it with --from-script, which sources it in a fresh R.
 solutions_dir <- file.path(repo_root, "solutions")
-rscript <- file.path(R.home("bin"), "Rscript")
 
 test_that("every problem has a reference solution", {
   for (id in names(all_problems)) {
@@ -8,20 +8,24 @@ test_that("every problem has a reference solution", {
   }
 })
 
-test_that("reference solutions are graded correct on several seeds", {
+test_that("reference solutions are graded correct from the script on several seeds", {
   skip_if_not_installed("Biostrings")
   for (p in all_problems) {
     for (seed in c(1L, 2L, 3L, 11L)) {
-      dir <- withr::local_tempdir()
-      dir.create(file.path(dir, "data"))
-      data <- make_dataset(p, seed)
-      writeLines(data, file.path(dir, "data", paste0(p$id, ".", p$data_ext)), sep = "")
-      out <- withr::with_dir(dir, system2(
-        rscript, shQuote(file.path(solutions_dir, paste0(p$id, ".R"))),
-        stdout = TRUE, stderr = FALSE
-      ))
-      v <- grade_problem(p, paste(out, collapse = "\n"), data)
-      expect_equal(v$status, "correct", info = sprintf("%s seed %d: %s", p$id, seed, v$message))
+      local_course()
+      run_cli("dataset", p$id, "--seed", seed)
+      dir.create("work", showWarnings = FALSE)
+      file.copy(file.path(solutions_dir, paste0(p$id, ".R")), file.path("work", paste0(p$id, ".R")))
+      res <- run_cli("grade", p$id, "--from-script", file.path("work", paste0(p$id, ".R")))
+      info <- sprintf("%s seed %d: %s", p$id, seed, res$out)
+      expect_match(res$out, '"status": "correct"', fixed = TRUE, info = info)
     }
+  }
+})
+
+test_that("every starter ends by setting answer, so it can be graded from the script", {
+  for (p in all_problems) {
+    starter <- readLines(file.path(p$folder, p$starter))
+    expect_true(any(grepl("^answer <- ", starter)), info = p$id)
   }
 })

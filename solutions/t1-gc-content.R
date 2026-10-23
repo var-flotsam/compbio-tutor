@@ -15,4 +15,5 @@ counts <- table(bases)
 
 # 4. GC content = (G + C) / total length.
 gc <- (counts[["G"]] + counts[["C"]]) / nchar(seq)
-cat(sprintf("%.4f\n", round(gc, 4)))
+answer <- round(gc, 4)
+answer

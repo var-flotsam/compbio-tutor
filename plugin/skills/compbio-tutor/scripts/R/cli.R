@@ -9,7 +9,8 @@ usage <- paste(
   "  list                          problems by track",
   "  show <id>                     the problem, its data file and starter code",
   "  dataset <id> [--seed N]       a new dataset for a fresh attempt",
-  "  grade <id> --answer TEXT      check an answer (or --answer-file PATH)",
+  "  grade <id> --from-script work/<id>.R  run the student's script and check its `answer`",
+  "  grade <id> --answer TEXT      check a typed answer (or --answer-file PATH)",
   "  hint <id>                     the next hint",
   "  explain <id> [--student-asked]  the worked explanation, when allowed",
   "  progress                      attempts, hints and status per problem",
@@ -50,7 +51,7 @@ parse_args <- function(args) {
       name <- parts[1]
       if (length(parts) > 1) {
         options[[name]] <- paste(parts[-1], collapse = "=")
-      } else if (name %in% c("answer", "answer-file", "seed")) {
+      } else if (name %in% c("answer", "answer-file", "from-script", "seed")) {
         if (i == length(args)) stop(sprintf("--%s needs a value", name), call. = FALSE)
         options[[name]] <- args[i + 1]
         i <- i + 1
@@ -232,8 +233,43 @@ read_seed <- function(opts) {
   seed
 }
 
-# The student's answer from --answer or --answer-file, or an exit status on error.
+# Run the student's script in a fresh R process from the course folder and return
+# its `answer` object as text, or an exit status after explaining the problem.
+answer_from_script <- function(path, runner = getOption("compbio.answer_runner")) {
+  if (!inside_course(path) || !grepl("\\.[Rr]$", path)) {
+    message("--from-script takes an R file inside the course folder, such as work/r0-variables.R")
+    return(2L)
+  }
+  if (!file.exists(path)) {
+    message(sprintf("There's no file %s yet. Run show <id> to make it.", path))
+    return(1L)
+  }
+  out <- course_path(".compbio-tutor", "script-answer.txt")
+  dir.create(dirname(out), showWarnings = FALSE)
+  unlink(out)
+  rscript <- file.path(R.home("bin"), if (.Platform$OS.type == "windows") "Rscript.exe" else "Rscript")
+  log <- suppressWarnings(system2(
+    rscript, shQuote(c(runner, path, out)), stdout = TRUE, stderr = TRUE, timeout = 120
+  ))
+  status <- attr(log, "status")
+  if (identical(status, 3L)) {
+    message(sprintf("%s ran, but it doesn't create `answer`. The last step should be `answer <- ...`.", path))
+    return(1L)
+  }
+  if (!is.null(status) && status != 0L || !file.exists(out)) {
+    message(sprintf(
+      "%s stopped with an error, so there's nothing to grade yet (it doesn't count as an attempt).\n%s",
+      path, paste(utils::tail(log, 6), collapse = "\n")
+    ))
+    return(1L)
+  }
+  paste(readLines(out, warn = FALSE), collapse = "\n")
+}
+
+# The student's answer from --from-script, --answer or --answer-file, or an exit
+# status on error.
 read_answer <- function(opts) {
+  if (!is.null(opts[["from-script"]])) return(answer_from_script(opts[["from-script"]]))
   path <- opts[["answer-file"]]
   if (!is.null(path)) {
     if (!inside_course(path)) {
@@ -249,12 +285,13 @@ read_answer <- function(opts) {
     return(paste(readLines(path, warn = FALSE), collapse = "\n"))
   }
   if (!is.null(opts$answer) && !isTRUE(opts$answer)) return(opts$answer)
-  message("grade needs --answer TEXT or --answer-file PATH")
+  message("grade needs --from-script work/<id>.R, --answer TEXT or --answer-file PATH")
   2L
 }
 
 # Returns an exit status instead of quitting, so tests can call it directly.
 tutor_main <- function(args, problems_dir) {
+  options(compbio.answer_runner = file.path(dirname(problems_dir), "scripts", "answer_runner.R"))
   parsed <- tryCatch(parse_args(args), error = function(err) err)
   if (inherits(parsed, "error")) {
     message(conditionMessage(parsed), "\n\n", usage)
