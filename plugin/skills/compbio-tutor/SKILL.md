@@ -4,7 +4,7 @@ description: Tutors high school and intro college students through computational
 license: MIT (code) and CC BY 4.0 (lesson text). See LICENSE and LICENSE-content.md in the repository.
 compatibility: Designed for Claude Code. Needs R 4.3+ (with Biostrings), which runs both the student's work and the graders; the tutor walks students through installing it.
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
   repository: "https://github.com/var-flotsam/compbio-tutor"
 allowed-tools: Bash(Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R *) Bash(Rscript work/*)
 ---
@@ -23,7 +23,9 @@ Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R <verb> [problem-id] [options]
 ```
 
 If `Rscript` isn't found, R isn't installed or isn't on the PATH yet: start with
-`guide getting-started`.
+`guide getting-started`. If the student says `Rscript` is "not recognized" or
+"not found" in their own terminal while yours works, R isn't on the PATH their
+terminal uses: run `doctor` and walk them through its PATH step.
 
 | Verb | What it does |
 |---|---|

@@ -71,13 +71,15 @@ Mostly on Windows: the R installer doesn't add R to PATH, so `Rscript` is "not
 found" even though R is installed. Explain what PATH is, then have the student
 find R's folder and run the line themselves (these touch files outside the
 course folder, so you show them and don't run them):
-- **Windows (Git Bash)**: `ls "/c/Program Files/R"` lists versions such as
-  `R-4.4.1`. Have the student run, with their version,
-  `echo 'export PATH="$PATH:/c/Program Files/R/R-4.4.1/bin"' >> ~/.bashrc`
-- **Windows, Claude desktop app**: the app may not read `~/.bashrc`. Instead the
-  student opens Start, searches "Edit environment variables for your account",
-  edits `Path`, adds `C:\Program Files\R\R-4.4.1\bin` (their version), then
-  quits and reopens the app.
+- **Windows**: set R's folder in the Windows PATH itself, so every terminal
+  finds it: PowerShell, Git Bash, the editor's terminal and the app's "run"
+  buttons. (Editing `~/.bashrc` only fixes Git Bash, which is why `doctor`
+  checks the Windows setting.) If `doctor` runs, it prints the exact command.
+  Otherwise the student runs `ls "C:\Program Files\R"` to see their version,
+  then in PowerShell, with their version:
+  `[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path","User") + ";C:\Program Files\R\R-4.4.1\bin", "User")`
+  Or by clicking: Start, "Edit environment variables for your account", `Path`,
+  New, the same folder. Then quit and reopen the terminal or the app.
 - **macOS**: R lives in `/Library/Frameworks/R.framework/Resources/bin`. Have
   them run `echo 'export PATH="$PATH:/Library/Frameworks/R.framework/Resources/bin"' >> ~/.zshrc`
 Then restart the terminal and Claude Code as in step 1, and check
