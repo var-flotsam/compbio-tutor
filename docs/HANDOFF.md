@@ -18,8 +18,11 @@ Current state of the compbio-tutor project, kept current after each phase.
   only for repo checks (`tests/test_skill.py`) and the future eval runner.
 - Course-folder rule (Ethan, 2026-10-23): nothing outside the working directory is
   read, written or changed; packages go in `.compbio-tutor/library`. Trial:
-  `evals/transcripts/trial-4-folder-boundary.md`. Asked Ethan whether reading the
-  skill's own installed files is OK (recommended yes).
+  `evals/transcripts/trial-4-folder-boundary.md`. Ethan's aim: no permission prompts.
+  The tutor reads its guides via `tutor.R guide <name>` (pre-approved Bash), not
+  the Read tool; allowed-tools also covers `Rscript work/*`. Checked in a live
+  multi-turn session with only `Skill` allowed: no prompts. Pre-approvals don't
+  survive `claude --resume` in a new process; students re-type the slash command.
 - Phases 5-7: not started.
 
 ## Where things are

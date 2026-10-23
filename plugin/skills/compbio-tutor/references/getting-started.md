@@ -120,7 +120,8 @@ Before lesson 1, have the student run one script so they see how it works:
    print("Hello from R")
    getwd()
    ```
-   (Offer to create the file for them this one time, or let them use an editor.)
+   (The student makes the file in their editor, step 6; you don't write it, so
+   they never get a permission prompt.)
 3. Run it from the course folder: `Rscript work/hello.R`.
 4. Ask: what folder did `getwd()` print, and why? (It's the folder they ran the
    command from: their working directory.) Then explain that the lessons read

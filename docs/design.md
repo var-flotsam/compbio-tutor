@@ -65,8 +65,10 @@ resolves every path it uses against the course folder and refuses anything
 outside it (including `..` and symlinks out); R packages install into
 `.compbio-tutor/library` with a two-line course `.Rprofile`; SKILL.md tells Claude
 to stay in the folder and to show, not run, setup steps that touch the rest of the
-computer. Exceptions: reading the skill's own installed files, and R's temporary
-session folder, which R creates and deletes itself.
+computer. The point is that students never see a permission prompt: the tutor
+reads its own guides through `tutor.R guide <name>`, which allowed-tools
+pre-approves, so it never opens files in the plugin folder directly. R's own
+temporary session folder is the one thing outside, and R deletes it itself.
 
 **Surface: Claude Code.** Students work in a project folder that contains the skill
 in `.claude/skills/compbio-tutor/`, with full network access and R installed

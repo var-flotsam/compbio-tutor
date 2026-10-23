@@ -205,3 +205,14 @@ test_that("a whole lesson touches nothing outside the course folder", {
   allowed <- "^(\\.compbio-tutor/|data/|work/|\\.Rprofile$)"
   expect_true(all(grepl(allowed, made)), info = paste(made, collapse = ", "))
 })
+
+test_that("guide prints the tutor's own guides by name only", {
+  local_course()
+  res <- run_cli("guide")
+  expect_match(res$out, "getting-started")
+  res <- run_cli("guide", "getting-started")
+  expect_equal(res$status, 0L)
+  expect_match(res$out, "# Getting started", fixed = TRUE)
+  expect_message(res <- run_cli("guide", "../SKILL"), "Unknown guide")
+  expect_equal(res$status, 1L)
+})

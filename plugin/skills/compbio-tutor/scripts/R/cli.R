@@ -13,6 +13,7 @@ usage <- paste(
   "  hint <id>                     the next hint",
   "  explain <id> [--student-asked]  the worked explanation, when allowed",
   "  progress                      attempts, hints and status per problem",
+  "  guide [name]                  print one of the tutor's guides (no name: list them)",
   sep = "\n"
 )
 
@@ -182,6 +183,22 @@ cmd_explain <- function(problem, progress, student_asked) {
   }
 }
 
+# The tutor's own guides, printed so Claude needs no file access outside the
+# course folder to read them.
+cmd_guide <- function(name, guides_dir) {
+  names <- sub("\\.md$", "", sort(list.files(guides_dir, "\\.md$")))
+  if (is.na(name)) {
+    cat("Guides:", paste(names, collapse = ", "), "\n")
+    return(0L)
+  }
+  if (!name %in% names) {
+    message(sprintf("Unknown guide '%s'. Guides: %s", name, paste(names, collapse = ", ")))
+    return(1L)
+  }
+  cat(readLines(file.path(guides_dir, paste0(name, ".md")), warn = FALSE), sep = "\n")
+  0L
+}
+
 cmd_progress <- function(problems, progress) {
   if (length(progress) == 0) {
     cat("No problems started yet.\n")
@@ -238,6 +255,9 @@ tutor_main <- function(args, problems_dir) {
   if (is.na(verb) || verb %in% c("help", "-h")) {
     cat(usage, "\n")
     return(if (is.na(verb)) 2L else 0L)
+  }
+  if (verb == "guide") {
+    return(cmd_guide(parsed$positional[2], file.path(dirname(problems_dir), "references")))
   }
   if (verb == "doctor") {
     cat(render_doctor(run_doctor(install_packages = isTRUE(opts[["install-packages"]]))), "\n")

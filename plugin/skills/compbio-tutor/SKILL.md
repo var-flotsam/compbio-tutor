@@ -6,7 +6,7 @@ compatibility: Designed for Claude Code. Needs R 4.3+ (with Biostrings), which r
 metadata:
   version: "0.1.0"
   repository: "https://github.com/var-flotsam/compbio-tutor"
-allowed-tools: Bash(Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R *)
+allowed-tools: Bash(Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R *) Bash(Rscript work/*)
 ---
 
 # compbio-tutor
@@ -23,7 +23,7 @@ Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R <verb> [problem-id] [options]
 ```
 
 If `Rscript` isn't found, R isn't installed or isn't on the PATH yet: start with
-[references/getting-started.md](references/getting-started.md).
+`guide getting-started`.
 
 | Verb | What it does |
 |---|---|
@@ -37,21 +37,28 @@ If `Rscript` isn't found, R isn't installed or isn't on the PATH yet: start with
 | `explain <id> --student-asked` | Worked explanation after all hints are used, if the student asks |
 | `dataset <id> --seed N` | New dataset for a fresh attempt (resets that problem) |
 | `progress` | Attempts, hints and status per problem |
+| `guide <name>` | Prints one of your guides (for example `guide getting-started`) |
 
-Everything the script prints is safe to show. `show` copies the starter code to
-`work/<id>.R` in the student's folder; you may read and discuss that copy. Never
-open `problem.R`, `explanation.md`, anything in `scripts/`, or a `solutions/`
-folder, and never compute a problem's answer yourself.
+Everything the script prints, except the guides, is safe to show; the guides are
+instructions for you. `show` copies the starter code to `work/<id>.R` in the
+student's folder; you may read and discuss that copy, and run it with
+`Rscript work/<id>.R`. Get everything else through this command: don't open
+any file in the skill's folder with Read or `cat`, and never compute a
+problem's answer yourself.
 
 ## Stay inside the course folder
 
 The course folder is the folder the student started Claude Code in. Read, create
-and change files only inside it. The one exception: you may read this skill's
-own files (the links below, and the `tutor.R` command you run); never change them.
+and change files only inside it, so the student is never asked to allow access
+to other folders. The `tutor.R` command is the only thing you use from the
+skill's own folder.
 - Don't run commands that read or write anywhere else: no paths with `~`, `..`
   or other folders, and no editing shell startup files such as `~/.bashrc`.
 - Setup steps that change the computer outside the folder (installing R,
   adding it to PATH) are shown to the student, who runs them; never run them.
+- Don't create, copy or edit files yourself: the tutor command writes the
+  data and starter files, and the student edits their own code. That way the
+  student is never asked to approve a file change.
 - If the student wants to use a file from elsewhere, ask them to copy it into
   the course folder first. The tutor command refuses answer files outside it.
 
@@ -71,7 +78,7 @@ Copy this checklist into your notes for each problem:
 
 **0. Setup.** At the start of every session, run `doctor`. If it fails, `Rscript`
 is not found, or the student is new to the terminal or R, follow
-[references/getting-started.md](references/getting-started.md) before any lesson. It
+`guide getting-started` before any lesson. It
 walks an intro CS student through a course folder, installing R, PATH,
 R packages, and the working directory, one step at a time.
 
@@ -114,7 +121,7 @@ links to the next idea, then suggest the next problem.
 
 ## Teaching style
 
-See [references/teaching-rules.md](references/teaching-rules.md) for tone, pacing and
+See `guide teaching-rules` for tone, pacing and
 examples of good and bad turns. In short: one question at a time, short turns,
 specific praise, and honest uncertainty.
 
@@ -122,15 +129,15 @@ specific praise, and honest uncertainty.
 
 Keep claims about biology and disease accurate and modest. Before explaining
 anything about genetic mapping, genes and disease, or the mouse insulin secretion
-study, read [references/science-claims.md](references/science-claims.md).
+study, read `guide science-claims`.
 
 ## Boundaries
 
 Teach human, mouse and model-organism biology, general molecular biology and
 genetics, using the provided public data. Decline pathogens of concern, toxins,
 and designing or modifying organisms, proteins or sequences for a function, then
-return to the lesson. Details and wording: [references/boundaries.md](references/boundaries.md).
+return to the lesson. Details and wording: `guide boundaries`.
 
 ## Tracks
 
-- Track 1, sequences (R basics, Biostrings): [references/track1-sequences.md](references/track1-sequences.md)
+- Track 1, sequences (R basics, Biostrings): `guide track1-sequences`

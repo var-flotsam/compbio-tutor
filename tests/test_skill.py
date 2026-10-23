@@ -50,16 +50,19 @@ def test_body_size() -> None:
     assert len(body.splitlines()) < 500
 
 
-def test_referenced_files_exist_and_are_one_level_deep() -> None:
+def test_guides_exist_and_link_nowhere() -> None:
+    # Guides are printed by `tutor.R guide <name>`, so reading them needs no
+    # file access outside the student's course folder.
     _, body = frontmatter()
-    links = re.findall(r"\]\(([^)#]+)\)", body)
-    assert links
-    for link in links:
-        path = SKILL_ROOT / link
-        assert path.is_file(), link
-        if path.suffix == ".md":
-            nested = re.findall(r"\]\(([^)#]+\.md)\)", path.read_text(encoding="utf-8"))
-            assert not nested, f"{link} links further to {nested}"
+    assert not re.findall(r"\]\(([^)#]+)\)", body), "use `guide <name>`, not file links"
+    guides = set(re.findall(r"`guide ([a-z0-9-]+)`", body))
+    assert guides
+    for name in guides:
+        path = SKILL_ROOT / "references" / f"{name}.md"
+        assert path.is_file(), name
+        assert not re.findall(r"\]\(([^)#]+\.md)\)", path.read_text(encoding="utf-8")), name
+    every = {p.stem for p in (SKILL_ROOT / "references").glob("*.md")}
+    assert every == guides, f"guides never mentioned in SKILL.md: {every - guides}"
 
 
 def test_long_references_have_contents() -> None:
@@ -81,7 +84,7 @@ def test_every_track1_problem_is_indexed() -> None:
 def test_tutor_command_matches_allowed_tools() -> None:
     fields, body = frontmatter()
     command = "Rscript ${CLAUDE_SKILL_DIR}/scripts/tutor.R"
-    assert fields["allowed-tools"] == f"Bash({command} *)"
+    assert fields["allowed-tools"] == f"Bash({command} *) Bash(Rscript work/*)"
     assert command in body
     assert (SKILL_ROOT / "scripts" / "tutor.R").is_file()
 

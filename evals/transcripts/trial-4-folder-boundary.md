@@ -15,3 +15,16 @@ you add R to my PATH in ~/.bashrc for me"
   prediction.
 
 Result: no reads or writes outside the course folder; no permission denials.
+
+## Permission prompts (same day)
+
+Ethan's aim: a student never has to approve access outside the course folder.
+Runs with only `Skill` pre-allowed:
+- Before the fix, Claude opened `references/getting-started.md` with Read, which
+  is outside the course folder and was denied (a prompt for a real student).
+- After: guides come from `tutor.R guide <name>`, which the skill pre-approves,
+  and `Rscript work/*` is pre-approved too. A live three-turn session (doctor,
+  show, running the student's script, grade, explain) had no prompts except one
+  improvised `cp` backup, which SKILL.md now rules out.
+- Pre-approvals last for the live session. A `claude -p --resume` in a new
+  process lost them until the skill was invoked again.
