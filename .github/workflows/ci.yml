@@ -79,8 +79,11 @@ jobs:
       - name: Install test packages
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          packages: any::testthat, any::withr, bioc::Biostrings
+          packages: any::testthat, any::withr
           dependencies: '"hard"'
           install-pandoc: false
       - name: testthat
-        run: Rscript -e 'testthat::test_dir("tests/testthat", stop_on_failure = TRUE)'
+        # Use the Biostrings that the student-style install put in the course library.
+        run: |
+          export R_LIBS="$RUNNER_TEMP/compbio/.compbio-tutor/library"
+          Rscript -e 'testthat::test_dir("tests/testthat", stop_on_failure = TRUE)'
