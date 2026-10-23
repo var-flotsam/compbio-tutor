@@ -1,0 +1,33 @@
+# Problem definition, read by the tutor with sys.source(). Lesson text: CC BY 4.0.
+problem <- list(
+  id = "t1-gc-content",
+  track = 1L,
+  order = 1L,
+  title = "How much of this DNA is G or C?",
+  goal = "Read a FASTA file in R, count bases, and compute GC content.",
+  dataset = "t1.gc_dna",
+  answer = "t1.gc_content",
+  starter = "starter.R",
+  answer_format = "a fraction between 0 and 1, rounded to 4 decimal places (for example 0.4821)",
+  background = r"(DNA is a chain of four bases: A, C, G and T. In the double helix, G pairs with C
+using three hydrogen bonds, while A pairs with T using two. The share of bases
+that are G or C is called the GC content.
+
+GC content is not the same everywhere. Some bacteria have genomes below 30% GC and
+others above 70%. In mammals such as mice and humans, it varies along each
+chromosome, and regions richer in G and C tend to be denser in genes. It is
+usually the first number researchers look at for a new sequence.
+
+Your data file is in FASTA format: a header line that starts with '>', followed by
+the sequence split across several lines.)",
+  prompt = r"(Compute the GC content of the sequence in your data file: the number of G and C
+bases divided by the total number of bases.
+
+Before you compute it, guess: will it be close to 0.5? Why might it not be?)",
+  grader = list(kind = "numeric", tolerance = 0.0001),
+  hints = c(
+    "The file has a header line and then several sequence lines. How can you join the sequence lines into one long string in R?",
+    "strsplit(seq, '')[[1]] turns a string into a vector of single letters. What does table() do with that vector?",
+    "Add the G count and the C count, then divide by nchar(seq), the length of the whole sequence. Round with round(x, 4)."
+  )
+)

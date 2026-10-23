@@ -1,6 +1,7 @@
 # Getting started: from zero to the first lesson
 
-Use this when `tutor.py doctor` reports a problem or the student is new. Assume
+Use this when `tutor.R doctor` reports a problem, `Rscript` isn't found, or the
+student is new. Assume
 an intro computer science student: they may never have used a terminal,
 installed a programming language, or thought about folders and paths. Teaching
 these is part of the lesson, so explain, then let the student do it.
@@ -8,18 +9,18 @@ these is part of the lesson, so explain, then let the student do it.
 ## Contents
 - How to run this part
 - Words to teach along the way
-- Step 1: Python for the grader
-- Step 2: A course folder
-- Step 3: Install R
-- Step 4: Let the terminal find R (PATH)
-- Step 5: R packages
-- Step 6: First R script and the working directory
-- Step 7: Editing files
+- Step 1: Install R
+- Step 2: Let the terminal find R (PATH)
+- Step 3: A course folder
+- Step 4: R packages
+- Step 5: First R script and the working directory
+- Step 6: Editing files
 - If something goes wrong
 
 ## How to run this part
-- Run `tutor.py doctor` and fix **only the first** failing item, then run
-  `doctor` again. One step per turn.
+- The tutor command itself runs in R, so first check `Rscript --version`. If
+  that fails, work through steps 1-2. Once it works, run `tutor.R doctor` and fix
+  **only the first** failing item, then run `doctor` again. One step per turn.
 - For each step: say what it is and why it's needed (one or two sentences), give
   the exact command or click path, ask the student to do it and tell you what
   happened.
@@ -44,20 +45,37 @@ Introduce each when it first matters, in one sentence:
 - **PATH**: the list of folders the terminal searches for programs.
 - **Package**: an add-on to R written by other people. Biostrings knows about DNA.
 
-## Step 1: Python for the grader
-The tutor's grading script is written in Python, so a working Python 3.9+ is
-needed (students don't write Python).
-- Try `python3`, then `python`, then `py -3` with `--version`, and use the
-  first that works for every `tutor.py` command this session.
-- **macOS**: running `python3` the first time may offer to install the
-  "Command Line Developer Tools". Accept and wait for it to finish.
-- **Windows**: if `python` opens the Microsoft Store or says it isn't found,
-  have the student run `winget install --id Python.Python.3.12 -e`, then close
-  and reopen the terminal and Claude Code.
-- **Linux**: Python 3 is almost always installed; otherwise
-  `sudo apt install python3` (the student runs it).
+## Step 1: Install R
+Why: R is the programming language for every lesson, and `Rscript` is the
+program that runs an R file. The tutor's answer checker is written in R too.
 
-## Step 2: A course folder
+First find out which computer they have (ask, or run `uname -s`: `Darwin` is a
+Mac, `MINGW...` or `MSYS...` is Windows with Git Bash, `Linux` is Linux).
+- **Windows**: `winget install --id RProject.R -e`, or download the installer
+  from https://cran.r-project.org/bin/windows/base/ and accept the defaults.
+- **macOS**: download the `.pkg` from https://cran.r-project.org/bin/macosx/
+  for their chip (`uname -m` prints `arm64` for Apple silicon, `x86_64` for
+  Intel), open it and click through the installer.
+- **Linux**: `sudo apt install r-base` on Ubuntu or Debian (the student runs
+  it); other systems: https://cran.r-project.org/.
+
+After installing, the terminal must be restarted to notice R: `/exit`, close the
+terminal window, open a new one, `cd` back to the folder they were in, `claude`,
+then `/compbio-tutor:compbio-tutor`. Tell them these steps before they leave.
+Check: `Rscript --version` prints a version 4.3 or newer.
+
+## Step 2: Let the terminal find R (PATH)
+Mostly on Windows: the R installer doesn't add R to PATH, so `Rscript` is "not
+found" even though R is installed. Explain what PATH is, then find R's folder:
+- **Windows (Git Bash)**: `ls "/c/Program Files/R"` lists versions such as
+  `R-4.4.1`. Have the student run, with their version,
+  `echo 'export PATH="$PATH:/c/Program Files/R/R-4.4.1/bin"' >> ~/.bashrc`
+- **macOS**: R lives in `/Library/Frameworks/R.framework/Resources/bin`. Have
+  them run `echo 'export PATH="$PATH:/Library/Frameworks/R.framework/Resources/bin"' >> ~/.zshrc`
+Then restart the terminal and Claude Code as in step 1, and check
+`Rscript --version` again.
+
+## Step 3: A course folder
 Why: keeping every file for the course in one folder means R and the tutor can
 always find the data, and nothing gets mixed up with other files.
 
@@ -72,7 +90,8 @@ exactly what to type when they come back. Steps:
 5. `claude` starts Claude Code here. Then type `/compbio-tutor:compbio-tutor`
    and press Enter to bring the tutor back.
 
-Whenever setup needs a restart (steps 2-4), give the student these steps and the
+If R also needs installing, do this step at the same restart. Whenever setup
+needs a restart, give the student these steps and the
 `/compbio-tutor:compbio-tutor` command to type when they return; a new Claude
 Code session doesn't remember this conversation, but `doctor` picks up where
 setup left off.
@@ -80,28 +99,13 @@ setup left off.
 On Windows (Git Bash), `~/Documents` is the student's Documents folder too.
 If OneDrive manages Documents, any folder they can find again is fine.
 
-## Step 3: Install R
-Why: R is the programming language for every lesson, and `Rscript` is the
-program that runs an R file.
-- Follow the install line that `doctor` prints for their operating system. On a
-  Mac, `doctor` names the right download for their chip.
-- After installing, the terminal must be restarted to notice R: `/exit`, close
-  the terminal window, open a new one, `cd ~/Documents/compbio`, `claude`, then
-  `/compbio-tutor:compbio-tutor`.
-- Check: `Rscript --version` prints a version 4.3 or newer.
-
-## Step 4: Let the terminal find R (PATH)
-Mostly on Windows: the R installer doesn't add R to PATH. `doctor` prints a
-one-line command that adds it for the student's install. Explain what PATH is,
-have them run it, then restart the terminal and Claude Code as in step 3.
-
-## Step 5: R packages
-Run `tutor.py doctor --install-packages` (ask first; it downloads and can take a
+## Step 4: R packages
+Run `tutor.R doctor --install-packages` (ask first; it downloads and can take a
 few minutes). It installs Biostrings from Bioconductor, the standard source of
 biology packages for R. If it fails, show the student the last lines of the
 output and suggest they share them with their teacher.
 
-## Step 6: First R script and the working directory
+## Step 5: First R script and the working directory
 Before lesson 1, have the student run one script so they see how it works:
 1. Make a folder for their code: `mkdir -p work`.
 2. Create `work/hello.R` containing:
@@ -124,16 +128,16 @@ working directory with `setwd("~/Documents/compbio")`, or in RStudio with
 File > New Project > Existing Directory > the course folder. Check with
 `getwd()`.
 
-## Step 7: Editing files
+## Step 6: Editing files
 Students edit their starter code in `work/`. Use the editor their class uses. If
 they have none, suggest Visual Studio Code (free, https://code.visualstudio.com/)
 and opening the course folder in it (File > Open Folder). Remind them to save
 before running a script.
 
 ## If something goes wrong
-- "command not found": the program isn't installed or isn't on PATH (steps 3-4).
-- "cannot open file 'data/...': No such file": wrong working directory (step 6)
-  or the lesson hasn't been shown yet (`tutor.py show <id>` writes the data).
+- "command not found": the program isn't installed or isn't on PATH (steps 1-2).
+- "cannot open file 'data/...': No such file": wrong working directory (step 5)
+  or the lesson hasn't been shown yet (`tutor.R show <id>` writes the data).
 - Permission errors when installing: a school-managed computer may block
   installs; ask the teacher.
 - Anything else: copy the exact error message, read it together line by line,

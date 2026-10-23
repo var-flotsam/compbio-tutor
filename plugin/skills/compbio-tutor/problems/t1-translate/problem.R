@@ -1,0 +1,33 @@
+# Problem definition, read by the tutor with sys.source(). Lesson text: CC BY 4.0.
+problem <- list(
+  id = "t1-translate",
+  track = 1L,
+  order = 3L,
+  title = "From gene to protein",
+  goal = "Translate a coding DNA sequence into protein using the standard genetic code.",
+  dataset = "t1.coding_dna",
+  answer = "t1.translate",
+  starter = "starter.R",
+  answer_format = "the protein in one-letter amino acid codes, without the stop codon",
+  background = r"(A protein-coding gene is read three bases at a time. Each three-base word is a
+codon, and the genetic code maps each of the 64 codons to one of 20 amino acids or
+to "stop". Translation starts at a start codon (ATG, which codes for methionine,
+M) and continues until the first stop codon (TAA, TAG or TGA).
+
+In the cell, DNA is first copied into messenger RNA (with U in place of T), and
+ribosomes translate the RNA. On a computer, we can translate the DNA directly with
+the same table.
+
+Proteins are usually written in one-letter codes, for example M for methionine and
+K for lysine.)",
+  prompt = r"(Your data file holds a coding sequence that begins with a start codon. Translate it
+into protein, up to but not including the stop codon.
+
+How many amino acids do you expect, given the length of the sequence?)",
+  grader = list(kind = "sequence", alphabet = "protein"),
+  hints = c(
+    "Where does translation begin, and how many bases does each step move forward?",
+    "substring(seq, starts, starts + 2) with starts <- seq(1, nchar(seq) - 2, by = 3) gives you every codon. Then you need a lookup table from codon to amino acid.",
+    "Biostrings::GENETIC_CODE is a named vector of the standard code: GENETIC_CODE[codons] gives the amino acids. Stop codons come out as '*'. Keep everything before the first '*'."
+  )
+)

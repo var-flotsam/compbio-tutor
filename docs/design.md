@@ -29,7 +29,7 @@ Revised the same day for those answers. Students use R in all three tracks
 - An open-source Agent Skill that tutors high school and intro college students
   through computational biology on real public data, by asking, hinting and
   checking rather than answering.
-- Every correctness decision is made by a deterministic script with pytest tests.
+- Every correctness decision is made by a deterministic script with testthat tests.
 - A capstone that follows the real DO islet study from phenotype to genome scan to
   candidate genes to the knockout experiments, with accurate claims throughout.
 
@@ -52,9 +52,9 @@ tutor handles everything after that (see "Onboarding from zero" below).
 **Onboarding from zero** (added 2026-10-23 at Ethan's request; audience: an intro
 CS course). Students install the tutor inside Claude Code with one command
 (`/plugin install compbio-tutor --marketplace var-flotsam/compbio-tutor`); the
-repo is a plugin marketplace. Every session starts with `tutor.py doctor`, which
-checks Python, the course folder, R, PATH and R packages and prints one next
-step. `references/getting-started.md` teaches the terminal, folders, installing
+repo is a plugin marketplace. Every session starts with `tutor.R doctor`, which
+checks R, the course folder and R packages and prints one next
+step (if `Rscript` itself is missing, the setup guide covers installing R and PATH). `references/getting-started.md` teaches the terminal, folders, installing
 R on each OS, PATH, packages, the working directory and an editor, one step per
 turn, with the student typing the commands. After any restart the student types
 `/compbio-tutor:compbio-tutor` to bring the tutor back.
@@ -66,13 +66,13 @@ locally. Claude can run the student's R code and the graders.
 | Need | Design response |
 |---|---|
 | Students learn R | Starter code, examples and hints are in R. Track 1 uses base R plus Bioconductor `Biostrings`, track 2 uses data frames, and track 3 uses R/qtl2. |
-| Reproducible R setup | `renv.lock` pins R packages; `setup/check_setup.R` reports what is missing in plain language |
-| Graders independent of the student's language | Graders are Python (stdlib only, 3.9+) and check answers and output files, not code. |
-| Capstone data too big to bundle | `tutor.py fetch-data` downloads a versioned data pack from GitHub Releases once and verifies its SHA-256 |
+| Reproducible R setup | `tutor.R doctor` reports what is missing in plain language and `--install-packages` installs it |
+| One language for students | Graders and the tutor command are base R (changed from Python on 2026-10-23 at Ethan's request), so students install only R. Graders check answers, not code. |
+| Capstone data too big to bundle | `tutor.R fetch-data` downloads a versioned data pack from GitHub Releases once and verifies its SHA-256 |
 | Portability later | `SKILL.md` frontmatter still uses only the six spec fields, so a claude.ai version stays possible (tracks 1-2 only) |
 
-Minimum versions on students' computers: Python 3.9 (the graders; macOS ships 3.9) and
-R 4.3 or later. Development uses Python 3.11+ with uv.
+Minimum version on students' computers: R 4.3 or later (nothing else). Development
+also uses Python 3.11+ with uv for the repository checks and the eval runner.
 
 ## 3. Repository layout
 
@@ -80,21 +80,22 @@ R 4.3 or later. Development uses Python 3.11+ with uv.
 compbio-tutor/                    repo root
 ├── .claude-plugin/marketplace.json  makes the repo a plugin marketplace
 ├── plugin/                       the plugin; skill in plugin/skills/compbio-tutor/
-├── prep/                         data build pipeline, not shipped (R/qtl2 + Python)
+├── prep/                         data build pipeline, not shipped (R/qtl2)
 ├── solutions/                    reference R solutions, outside the plugin
-├── tools/build_problems.py       problem.toml -> problem.json
-├── tests/                        pytest: graders, problem files, skill checks
+├── tests/testthat/               testthat: graders, problems, CLI, doctor, R solutions
+├── tests/test_skill.py           pytest: skill folder follows the Agent Skills spec
 ├── evals/                        scripted student conversations, runner, results
 ├── docs/                         design.md, research.md, HANDOFF.md, teacher-guide.md
 ├── tools/package_skill.py        builds dist/compbio-tutor.zip for claude.ai upload
 ├── .github/workflows/ci.yml
-├── pyproject.toml, uv.lock       uv-managed; dev deps only (pytest, ruff, mypy)
+├── pyproject.toml, uv.lock       uv-managed dev tools for repo checks and evals (pytest, ruff, mypy)
+├── .lintr                        lintr settings for the R code
 ├── README.md
 ├── LICENSE (code), LICENSE-content (lesson text), DATA_SOURCES.md
 ```
 
-Dev tooling: uv, ruff (lint + format), mypy in strict mode on `skills/` and `tools/`,
-pytest. Runtime code in the skill has no third-party dependencies.
+Dev tooling: testthat and lintr for the R code; uv, ruff, mypy (strict) and pytest for
+the Python repo checks and evals. Runtime code in the skill is base R only.
 
 ## 4. Skill layout
 
@@ -109,57 +110,55 @@ skills/compbio-tutor/
 │   ├── track3-capstone.md
 │   └── science-claims.md         what the papers did and did not show
 ├── scripts/
-│   ├── tutor.py                  one CLI: list, show, dataset, grade, hint, explain, progress
-│   └── tutorlib/                 graders, problem loader, progress store (stdlib only)
+│   ├── tutor.R                   one CLI: doctor, list, show, dataset, grade, hint, explain, progress
+│   └── R/                        graders, datasets/answers, problem loader, progress, doctor (base R)
 ├── problems/<problem-id>/
-│   ├── problem.toml              goal, background, starter data, grader spec, hints
-│   └── explanation.md            worked explanation (read only via tutor.py explain)
+│   ├── problem.R                 goal, background, dataset, grader spec, hints
+│   ├── starter.R                 starter code with ___ blanks
+│   └── explanation.md            worked explanation (read only via tutor.R explain)
 └── assets/data/                  bundled datasets + ATTRIBUTION.md (budget: 10 MB)
 ```
 
 One CLI keeps `SKILL.md` short: Claude learns one command shape
-(`python scripts/tutor.py <verb> <problem-id> ...`) and every verb prints
+(`Rscript scripts/tutor.R <verb> <problem-id> ...`) and every verb prints
 student-safe output.
 
 ## 5. Problem format
 
-Each problem is a folder with a `problem.toml`, which authors edit;
-`tools/build_problems.py` writes the `problem.json` the skill reads (so the skill
-needs no TOML parser and runs on Python 3.9). A test fails if the JSON is stale.
+Each problem is a folder with a `problem.R` that defines one list (read with
+`sys.source()`, so authors write plain R and the skill needs no parser):
 
-```toml
-id = "t1-gc-content"
-track = 1
-title = "How much of this DNA is G or C?"
-goal = "Compute GC content and explain why it differs between genomes."
-background = """Plain-language background, 1-3 short paragraphs, original text."""
-prompt = """What the student is asked to do."""
-data = "generated"            # or a path under assets/data/
-answer_format = "decimal fraction between 0 and 1, 4 decimal places"
-
-[grader]
-kind = "numeric"              # numeric | exact | sequence | set | choice | interval | ranking
-tolerance = 0.001
-
-[[grader.diagnostics]]        # recognised wrong answers -> feedback code
-code = "percent_not_fraction"
-message = "Your number looks like a percentage. The question asks for a fraction."
-
-[[hints]]
-text = "Which letters count toward GC content?"
-[[hints]]
-text = "Count each letter separately before combining."
-[[hints]]
-text = "Divide by the length of the whole sequence, including A and T."
+```r
+problem <- list(
+  id = "t1-gc-content", track = 1L, order = 1L,
+  title = "How much of this DNA is G or C?",
+  goal = "Read a FASTA file in R, count bases, and compute GC content.",
+  dataset = "t1.gc_dna",          # seeded generator in scripts/R/answers.R
+  answer = "t1.gc_content",       # computes the expected answer and diagnostics
+  starter = "starter.R",
+  answer_format = "a fraction between 0 and 1, rounded to 4 decimal places",
+  background = r"(Plain-language background, 1-3 short paragraphs, original text.)",
+  prompt = r"(What the student is asked to do.)",
+  grader = list(kind = "numeric", tolerance = 0.0001),
+  # numeric | exact | sequence | set | choice | interval | ranking
+  hints = c(
+    "Which letters count toward GC content?",
+    "Count each letter separately before combining.",
+    "Divide by the length of the whole sequence, including A and T."
+  )
+)
 ```
+
+Recognised wrong answers (for example a percentage instead of a fraction) are
+diagnostics returned by the answer function, each with a feedback code and message.
 
 Rules: at least 3 hints, ordered from a question to a near-procedure, and **no
 hint states the answer**. Expected answers are never stored in text Claude reads:
 graders compute them from the data (or from a seed), or keep them inside
-`tutorlib`, whose source Claude runs but does not need to read.
+`scripts/R/`, whose source Claude runs but does not read.
 
 **Per-student datasets.** Track 1 and some track 2 problems can generate a dataset
-from a seed (`tutor.py dataset t1-gc-content --seed 42`), like Rosalind's
+from a seed (`tutor.R dataset t1-gc-content --seed 42`), like Rosalind's
 per-attempt data, so classmates cannot share answers. Track 3 uses the fixed
 real dataset.
 
@@ -185,17 +184,17 @@ reversed-only or complemented-only), set (order-free, with partial credit),
 multiple choice, genomic interval (overlap and width checks), and ranking (top-k
 match).
 
-**Hints** are released one at a time with `tutor.py hint <id>`, which records the
+**Hints** are released one at a time with `tutor.R hint <id>`, which records the
 level and refuses to skip ahead. Claude never reads the full hint list.
 
-**Explanations** come only from `tutor.py explain <id>`, which prints the worked
+**Explanations** come only from `tutor.R explain <id>`, which prints the worked
 explanation only if (a) the problem is graded correct in this session, or (b) all
 hints are used and `--student-asked` is passed. Otherwise it prints a refusal and
 the next hint. This puts the "no answer before trying" rule in code, not just in
 instructions. (Claude could still read the file directly; the instructions forbid
 it and evals measure it.)
 
-**Progress** lives in `.compbio-tutor/progress.json` in the working directory:
+**Progress** lives in `.compbio-tutor/progress.dcf` (plain-text R DCF) in the working directory:
 attempts, hints used, solved problems. On claude.ai and the API it lasts for the
 conversation only; that is acceptable for a pilot.
 
@@ -204,16 +203,16 @@ conversation only; that is acceptable for a pilot.
 SKILL.md gives Claude a short loop, with a copyable checklist:
 
 1. **Place the student.** Ask what they know; suggest a track and problem
-   (`tutor.py list`). Check prerequisites for track 3.
-2. **Set up the problem.** `tutor.py show <id>` prints goal, background, prompt and
+   (`tutor.R list`). Check prerequisites for track 3.
+2. **Set up the problem.** `tutor.R show <id>` prints goal, background, prompt and
    data location. Ask the student to predict or restate the goal first.
 3. **Let them work.** Answer questions about R syntax and biology concepts
    freely; do not do the problem's computation for them.
-4. **Grade every answer with the script.** `tutor.py grade <id> --answer ...`.
+4. **Grade every answer with the script.** `tutor.R grade <id> --answer ...`.
    Never say "correct" or "incorrect" without a grader result.
 5. **On a wrong answer:** use the feedback code, ask one guiding question, and
    offer the next hint only if they are stuck or ask.
-6. **On a correct answer:** `tutor.py explain <id>`, then connect it to the
+6. **On a correct answer:** `tutor.R explain <id>`, then connect it to the
    biology and the capstone story, then suggest the next problem.
 7. **Asked for the answer early:** say why trying helps, offer the next hint.
    Only after hints run out and the student asks again, run
@@ -310,15 +309,15 @@ students set a fixed seed.
 
 ## 11. Testing, evals and CI
 
-**pytest** (every grader, including wrong answers):
+**testthat** (every grader, including wrong answers):
 - For each problem: the correct answer passes; each listed diagnostic answer gets
   its code; random wrong answers fail; unparseable input gives `invalid`; seeded
   datasets reproduce.
 - Problem file checks: ≥3 hints, no hint or background contains the expected
   answer, explanation exists, ids unique.
-- Skill checks: frontmatter has only spec fields and valid name/description;
+- Skill checks (pytest): frontmatter has only spec fields and valid name/description;
   SKILL.md under 500 lines; every referenced file exists; assets under budget;
-  `tutorlib` imports only the standard library.
+  the tutor's R code uses base R only.
 
 **Evals** (`evals/`): scripted student conversations run against Claude with the
 skill installed. Personas per problem sample: correct first try, partly wrong
@@ -337,11 +336,11 @@ The runner will use the Claude Agent SDK with the skill on the filesystem (to
 confirm in Phase 7), test with Haiku, Sonnet and Opus as the docs advise, and
 write a results table into the README.
 
-**CI (GitHub Actions):** on every push and PR: `uv sync`, `ruff check`,
-`ruff format --check`, `mypy`, `pytest`, `skills-ref validate`, and a packaging
-dry run. A second job sets up R with `r-lib/actions` on Linux, macOS and Windows,
-restores `renv.lock`, and runs each track's reference R solution against the
-graders, so a broken R setup or a tolerance drift fails CI. Evals run on manual dispatch only, because they need an API key secret
+**CI (GitHub Actions):** on every push and PR: `ruff`, `mypy`, `pytest` and
+`skills-ref validate` for the skill folder, and lintr for the R code. An R job on
+Linux, macOS and Windows (plus R 4.3 on Linux) runs a CLI smoke test with base R,
+installs packages with `doctor --install-packages` as students do, and runs the
+testthat suite, including each reference R solution graded by the tutor, so a broken R setup or a tolerance drift fails CI. Evals run on manual dispatch only, because they need an API key secret
 and cost money.
 
 ## 12. Documentation
@@ -360,7 +359,7 @@ and cost money.
 | Paper loci differ from what our reduced scans show | Teach from our scans; say where and why they differ |
 | Claude reads explanation files directly | Instructions forbid it; evals measure leakage |
 | Overclaiming disease links | science-claims.md, explanation checklists, forbidden-phrase evals |
-| R setup fails on school computers | `check_setup.R`, renv lockfile, a teacher-guide troubleshooting section, and a test on a clean machine in CI (`r-lib/actions`) |
+| R setup fails on school computers | `tutor.R doctor`, the setup guide, a teacher-guide troubleshooting section, and a test on a clean machine in CI (`r-lib/actions`) |
 | Scans too slow on student laptops | Thinned marker grid, fewer permutations in class (with the full threshold supplied), timing checked in CI |
 | Grader tolerance too tight for different R/BLAS versions | Tolerances set from runs on Linux, macOS and Windows in CI |
 

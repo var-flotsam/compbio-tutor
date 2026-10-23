@@ -1,0 +1,12 @@
+linters: linters_with_defaults(
+    line_length_linter(110),
+    cyclocomp_linter(25),
+    object_name_linter = NULL,
+    object_usage_linter = NULL,
+    indentation_linter = NULL,
+    brace_linter = NULL
+  )
+exclusions: list(
+    "plugin/skills/compbio-tutor/problems" = list(line_length_linter = Inf)
+  )
+encoding: "UTF-8"

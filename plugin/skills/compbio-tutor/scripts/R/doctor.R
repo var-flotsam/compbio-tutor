@@ -1,0 +1,115 @@
+# Check a student's computer for everything the lessons need.
+#
+# Run by `tutor.R doctor`. Prints a short checklist and one next step, in plain
+# language for a student new to the terminal. Base R only. If this runs at all,
+# R is installed and on the PATH; the setup guide in the skill's references
+# folder covers getting R itself.
+
+min_r <- "4.3.0"
+course_folder_name <- "compbio"
+# Packages each track needs. Biostrings comes from Bioconductor.
+needed_packages <- list("Track 1" = c("Biostrings"))
+bioconductor_packages <- c("Biostrings")
+cran_repo <- "https://cloud.r-project.org"
+
+check <- function(name, ok, detail, fix = "") {
+  list(name = name, ok = ok, detail = detail, fix = fix)
+}
+
+os_name <- function() {
+  sysname <- Sys.info()[["sysname"]]
+  if (sysname == "Darwin") "macos" else if (.Platform$OS.type == "windows") "windows" else "linux"
+}
+
+r_version_check <- function(version = getRversion()) {
+  shown <- as.character(version)
+  if (version < min_r) {
+    return(check(
+      "R", FALSE, sprintf("%s is too old (need %s+)", shown, min_r),
+      "install the newest R from https://cran.r-project.org/ (see the setup guide)."
+    ))
+  }
+  check("R", TRUE, sprintf("%s (%s)", shown, os_name()))
+}
+
+folder_check <- function(cwd = getwd(), home = path.expand("~")) {
+  cwd <- normalizePath(cwd, winslash = "/", mustWork = FALSE)
+  home <- normalizePath(home, winslash = "/", mustWork = FALSE)
+  suggestion <- file.path(home, "Documents", course_folder_name)
+  is_root <- dirname(cwd) == cwd
+  if (cwd == home || is_root) {
+    return(check(
+      "Course folder", FALSE,
+      sprintf("you're working in %s, which is your home folder or a whole drive", cwd),
+      sprintf(paste(
+        "make a folder just for this course, such as %s, then start Claude Code from",
+        "inside it (`mkdir -p` the folder, `cd` into it, run `claude`)."
+      ), suggestion)
+    ))
+  }
+  if (".claude" %in% strsplit(cwd, "/", fixed = TRUE)[[1]]) {
+    return(check(
+      "Course folder", FALSE, sprintf("you're inside Claude Code's own settings folder (%s)", cwd),
+      sprintf("start Claude Code from a course folder such as %s instead.", suggestion)
+    ))
+  }
+  check("Course folder", TRUE, cwd)
+}
+
+missing_packages <- function() {
+  pkgs <- unlist(needed_packages, use.names = FALSE)
+  pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)]
+}
+
+install_packages <- function(pkgs) {
+  for (pkg in pkgs) {
+    message(sprintf("Installing %s...", pkg))
+    if (pkg %in% bioconductor_packages) {
+      if (!requireNamespace("BiocManager", quietly = TRUE)) {
+        utils::install.packages("BiocManager", repos = cran_repo)
+      }
+      BiocManager::install(pkg, update = FALSE, ask = FALSE)
+    } else {
+      utils::install.packages(pkg, repos = cran_repo)
+    }
+  }
+}
+
+packages_check <- function(install = FALSE) {
+  missing <- missing_packages()
+  if (length(missing) > 0 && install) {
+    install_packages(missing)
+    missing <- missing_packages()
+  }
+  if (length(missing) == 0) return(check("R packages", TRUE, "all installed"))
+  if (install) {
+    return(check(
+      "R packages", FALSE, sprintf("%s did not install", paste(missing, collapse = ", ")),
+      "copy the last lines of the messages above and show them to your teacher."
+    ))
+  }
+  check(
+    "R packages", FALSE, sprintf("missing %s", paste(missing, collapse = ", ")),
+    "install them: run `doctor --install-packages` (it can take a few minutes)."
+  )
+}
+
+run_doctor <- function(install_packages = FALSE, cwd = getwd()) {
+  checks <- list(r_version_check(), folder_check(cwd))
+  if (checks[[1]]$ok) checks[[3]] <- packages_check(install_packages)
+  checks
+}
+
+render_doctor <- function(checks) {
+  lines <- c("compbio-tutor setup check", "")
+  for (ch in checks) {
+    lines <- c(lines, sprintf("[%s] %s: %s", if (ch$ok) "ok" else "!!", ch$name, ch$detail))
+  }
+  failing <- Filter(function(ch) !ch$ok, checks)
+  lines <- c(lines, "", if (length(failing) == 0) {
+    "Everything is ready. Next step: start the first lesson."
+  } else {
+    sprintf("Next step (%s): %s", failing[[1]]$name, failing[[1]]$fix)
+  })
+  paste(lines, collapse = "\n")
+}

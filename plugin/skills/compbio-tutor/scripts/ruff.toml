@@ -1,4 +1,0 @@
-# The grader scripts run on students' computers, where Python may be as old as
-# 3.9 (the version macOS ships), so lint them against 3.9 syntax.
-extend = "../../../../pyproject.toml"
-target-version = "py39"

@@ -35,18 +35,19 @@ Phase 7.
 - `.claude-plugin/marketplace.json`: makes this repo a plugin marketplace
 - `plugin/`: the plugin; the skill is `plugin/skills/compbio-tutor/`
 - `solutions/`: reference R solutions (kept out of the plugin)
-- `tools/build_problems.py`: builds each `problem.json` from `problem.toml`
 - `tests/`, `docs/`, `evals/`
 
 ## Development
 
+The tutor, graders and tests are R; students need only R 4.3+.
+
 ```
-uv sync
-uv run python tools/build_problems.py   # after editing any problem.toml
-uv run pytest
-uv run ruff check . && uv run mypy
+Rscript plugin/skills/compbio-tutor/scripts/tutor.R doctor --install-packages
+Rscript -e 'testthat::test_dir("tests/testthat")'   # needs testthat and withr
+Rscript -e 'lintr::lint_dir(".")'
+uv sync && uv run pytest && uv run ruff check . && uv run mypy   # skill-folder checks
 claude plugin validate .
 ```
 
-The R solution tests need R 4.3+ and Biostrings
-(`Rscript plugin/skills/compbio-tutor/scripts/check_setup.R --install`).
+Problems live in `plugin/skills/compbio-tutor/problems/<id>/problem.R`; their
+datasets and answer checkers are in `scripts/R/answers.R`.
