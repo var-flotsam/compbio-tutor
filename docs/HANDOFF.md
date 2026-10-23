@@ -28,6 +28,7 @@ Current state of the compbio-tutor project, kept current after each phase.
   no CRAN, no folder). Cloud sessions (web/mobile) not supported: no plugin install,
   R only via setup script + custom network allowlist, files lost unless committed;
   `doctor` flags `CLAUDE_CODE_REMOTE=true`. Phone use: Remote Control to a laptop.
+  Ethan decided (2026-10-23): no cloud version.
 - Phases 5-7: not started.
 
 ## Where things are
