@@ -9,17 +9,18 @@ Current state of the compbio-tutor project, kept current after each phase.
   `t1-translate`, `t1-reading-frames`, `t1-longest-orf`) with R starter code,
   seeded per-student datasets, graders with misconception codes, hint ladders and
   explanations. 236 pytest tests pass, including R reference solutions run in R 4.3.
-- Phase 4 (SKILL.md, try end to end with Ethan): next.
+- Phase 4: SKILL.md and references written; headless trial passed (`evals/transcripts/trial-1.md`).
+  Waiting for Ethan's own end-to-end trial before calling Phase 4 done.
 - Phases 5-7: not started.
 
 ## Where things are
 - `skills/compbio-tutor/` is the shippable skill: `scripts/tutor.py` (CLI),
   `scripts/tutorlib/` (graders, datasets/answers, problem loader, progress),
-  `problems/<id>/` (problem.toml, starter.R, explanation.md). No SKILL.md yet.
+  `problems/<id>/` (problem.toml, starter.R, explanation.md), `SKILL.md`, `references/`.
 - `solutions/` holds complete R solutions, outside the skill so the tutor can't read them.
 - `setup/check_setup.R` checks R and installs packages (`--install`).
 - CI: `.github/workflows/ci.yml` (Python lint/types/tests; R solutions on 3 OSes). Not yet run on GitHub.
-- Local git repo only; nothing pushed. A git bundle is copied to the project files folder after each commit.
+- Pushed to https://github.com/var-flotsam/compbio-tutor (main).
 
 ## Decisions so far
 - Data: Dryad pj105 (CC0) + MPD Attie2 (copyright waived) + MGI (CC BY 4.0) + Ensembl (unrestricted).
@@ -32,7 +33,12 @@ Current state of the compbio-tutor project, kept current after each phase.
 - Deviation from design: no `renv.lock` yet; `check_setup.R --install` covers track 1. Add renv when R/qtl2 arrives (Phase 6).
 
 ## Open
-- Ethan to create the GitHub repo and widen the cloud environment's network access
-  (JAX, Dryad, MGI, Ensembl, CRAN, Bioconductor hosts).
+- Ethan set a wider-network default environment; tracks 2-3 must run in a new thread to get it.
 - QTL Viewer redistribution terms (not needed if Dryad + MPD suffice).
 - Track 2 `t1-mouse-insulin`-style real-gene problem needs Ensembl access.
+
+## How to trial the skill headlessly
+Copy `skills/compbio-tutor` into `<tmp>/.claude/skills/`, then per turn:
+`claude -p "<student message>" --session-id <uuid>` (first) / `--resume <uuid>` (later),
+with `--allowedTools "Skill" "Bash(python3:*)" "Bash(Rscript:*)" "Read"`.
+Without `Skill` allowed, `-p` mode denies the skill and Claude improvises a lesson.
