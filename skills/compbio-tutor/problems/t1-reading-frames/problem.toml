@@ -1,5 +1,6 @@
 id = "t1-reading-frames"
 track = 1
+order = 4
 title = "Six ways to read a sequence"
 goal = "List the six reading frames of a DNA sequence and find which ones have no stop codon."
 dataset = "t1.frames_dna"

@@ -1,5 +1,6 @@
 id = "t1-gc-content"
 track = 1
+order = 1
 title = "How much of this DNA is G or C?"
 goal = "Read a FASTA file in R, count bases, and compute GC content."
 dataset = "t1.gc_dna"

@@ -1,5 +1,6 @@
 id = "t1-translate"
 track = 1
+order = 3
 title = "From gene to protein"
 goal = "Translate a coding DNA sequence into protein using the standard genetic code."
 dataset = "t1.coding_dna"

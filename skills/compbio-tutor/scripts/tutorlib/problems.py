@@ -27,6 +27,7 @@ class ProblemError(Exception):
 class Problem:
     id: str
     track: int
+    order: int
     title: str
     goal: str
     background: str
@@ -110,6 +111,7 @@ def load_problem(folder: Path) -> Problem:
     return Problem(
         id=pid,
         track=_require(data, "track", int, pid),
+        order=_require(data, "order", int, pid),
         title=_require(data, "title", str, pid),
         goal=_require(data, "goal", str, pid),
         background=_require(data, "background", str, pid).strip(),
@@ -125,8 +127,6 @@ def load_problem(folder: Path) -> Problem:
 
 
 def load_all(root: Path = PROBLEMS_DIR) -> dict[str, Problem]:
-    problems = {}
-    for folder in sorted(p for p in root.iterdir() if (p / "problem.toml").is_file()):
-        problem = load_problem(folder)
-        problems[problem.id] = problem
-    return problems
+    loaded = [load_problem(p) for p in root.iterdir() if (p / "problem.toml").is_file()]
+    loaded.sort(key=lambda problem: (problem.track, problem.order))
+    return {problem.id: problem for problem in loaded}

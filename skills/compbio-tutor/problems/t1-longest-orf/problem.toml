@@ -1,5 +1,6 @@
 id = "t1-longest-orf"
 track = 1
+order = 5
 title = "Find the hidden gene"
 goal = "Find open reading frames on both strands and translate the longest one."
 dataset = "t1.orf_dna"

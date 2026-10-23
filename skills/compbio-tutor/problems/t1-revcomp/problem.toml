@@ -1,5 +1,6 @@
 id = "t1-revcomp"
 track = 1
+order = 2
 title = "The other strand"
 goal = "Explain why DNA strands run in opposite directions, and write the reverse complement in R."
 dataset = "t1.short_dna"

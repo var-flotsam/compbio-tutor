@@ -39,3 +39,9 @@ def test_explanations_and_starters_exist(problems: dict[str, Problem]) -> None:
         if problem.starter:
             starter = (problem.folder / problem.starter).read_text(encoding="utf-8")
             assert f"data/{problem.id}.fasta" in starter
+
+
+def test_problems_are_listed_in_teaching_order(problems: dict[str, Problem]) -> None:
+    keys = [(p.track, p.order) for p in problems.values()]
+    assert keys == sorted(keys) and len(set(keys)) == len(keys)
+    assert next(iter(problems)) == "t1-gc-content"

@@ -83,7 +83,8 @@ links to the next idea, then suggest the next problem.
 
 ## When the student asks for the answer
 
-- Hints left: say briefly why trying helps, run `hint`, and encourage another try.
+- Hints left: say briefly why trying helps, run `hint`, give only that hint, and
+  encourage another try.
 - No hints left and they ask again: run `explain <id> --student-asked` and walk
   through it. Then offer `dataset <id> --seed N` with a new seed so they can solve
   a fresh version on their own.
