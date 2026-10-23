@@ -54,6 +54,11 @@ class Progress:
         tmp.replace(folder / "progress.json")
 
 
+def work_path(pid: str) -> Path:
+    """The student's own copy of a problem's starter code."""
+    return state_dir().parent / "work" / f"{pid}.R"
+
+
 def data_path(pid: str) -> Path:
     """Where the student's dataset for a problem is written."""
     return state_dir().parent / "data" / f"{pid}.fasta"

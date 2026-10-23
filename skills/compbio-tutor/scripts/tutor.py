@@ -17,13 +17,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from tutorlib.problems import Problem, ProblemError, load_all  # noqa: E402
-from tutorlib.progress import Progress, data_path  # noqa: E402
+from tutorlib.progress import Progress, data_path, work_path  # noqa: E402
 
 
 def _problem(problems: dict[str, Problem], pid: str) -> Problem:
@@ -63,7 +64,12 @@ def cmd_show(problem: Problem, progress: Progress) -> None:
     print(f"Answer format: {problem.answer_format}")
     print(f"Your data file: {path}")
     if problem.starter:
-        print(f"Starter code: {problem.folder / problem.starter}")
+        work = work_path(problem.id)
+        if not work.exists():
+            work.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(problem.folder / problem.starter, work)
+        print(f"Starter code (your copy to edit): {work}")
+        print(f"Run it from this folder with: Rscript {work}")
 
 
 def cmd_dataset(problem: Problem, progress: Progress, seed: int | None) -> None:

@@ -93,3 +93,12 @@ def test_corrupt_progress_file_recovers(
     (state_home / "progress.json").write_text("{not json")
     assert run(capsys, "progress") == "No problems started yet.\n"
     assert (state_home / "progress.json.bad").is_file()
+
+
+def test_show_copies_starter_once(state_home: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    out = run(capsys, "show", "t1-gc-content")
+    work = state_home.parent / "work" / "t1-gc-content.R"
+    assert work.is_file() and "Rscript" in out
+    work.write_text("# my edits\n")
+    run(capsys, "show", "t1-gc-content")
+    assert work.read_text() == "# my edits\n"

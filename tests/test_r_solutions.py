@@ -10,7 +10,6 @@ import subprocess
 from pathlib import Path
 
 import pytest
-
 from tutorlib.problems import Problem
 
 ROOT = Path(__file__).resolve().parents[1]

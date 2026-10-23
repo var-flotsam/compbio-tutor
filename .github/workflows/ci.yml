@@ -15,6 +15,8 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy
       - run: uv run pytest -q
+      - name: Validate skill against the Agent Skills spec
+        run: uvx --from skills-ref==0.1.1 agentskills validate skills/compbio-tutor
 
   r-solutions:
     # Prove the R path works for students on every OS: run each reference
