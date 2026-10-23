@@ -57,7 +57,8 @@ Mac, `MINGW...` or `MSYS...` is Windows with Git Bash, `Linux` is Linux).
 - **macOS**: download the `.pkg` from https://cran.r-project.org/bin/macosx/
   for their chip (`uname -m` prints `arm64` for Apple silicon, `x86_64` for
   Intel), open it and click through the installer.
-- **Linux**: `sudo apt install r-base` on Ubuntu or Debian (the student runs
+- **Linux**: `sudo apt install r-base libcurl4-openssl-dev` on Ubuntu or Debian
+  (the second package lets R build Biostrings' helpers) (the student runs
   it); other systems: https://cran.r-project.org/.
 
 After installing, the terminal must be restarted to notice R: `/exit`, close the
