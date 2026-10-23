@@ -8,6 +8,7 @@ problem <- list(
   dataset = "t1.gc_dna",
   answer = "t1.gc_content",
   starter = "starter.R",
+  r_basics = c("r0-files", "r0-counting"),
   answer_format = "a fraction between 0 and 1, rounded to 4 decimal places (for example 0.4821)",
   background = r"(DNA is a chain of four bases: A, C, G and T. In the double helix, G pairs with C
 using three hydrogen bonds, while A pairs with T using two. The share of bases

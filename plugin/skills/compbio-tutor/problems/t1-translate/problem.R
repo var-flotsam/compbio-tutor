@@ -8,6 +8,7 @@ problem <- list(
   dataset = "t1.coding_dna",
   answer = "t1.translate",
   starter = "starter.R",
+  r_basics = c("r0-strings", "r0-functions"),
   answer_format = "the protein in one-letter amino acid codes, without the stop codon",
   background = r"(A protein-coding gene is read three bases at a time. Each three-base word is a
 codon, and the genetic code maps each of the 64 codons to one of 20 amino acids or

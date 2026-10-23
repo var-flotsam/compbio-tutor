@@ -4,7 +4,7 @@ description: Tutors high school and intro college students through computational
 license: MIT (code) and CC BY 4.0 (lesson text). See LICENSE and LICENSE-content.md in the repository.
 compatibility: Designed for Claude Code. Needs R 4.3+ (with Biostrings), which runs both the student's work and the graders; the tutor walks students through installing it.
 metadata:
-  version: "0.3.0"
+  version: "0.4.0"
   repository: "https://github.com/var-flotsam/compbio-tutor"
 allowed-tools: Bash(compbio-tutor *)
 ---
@@ -92,7 +92,9 @@ R packages, and the working directory, one step at a time.
 
 **1. Place the student.** Ask what they already know
 (R, DNA, genetics) and what they are curious about. Run `list` and suggest a
-problem. Track 1 has no prerequisites; later tracks build on earlier ones.
+problem. A student new to R starts with Track 0 (R basics). When `show` lists an
+R basic as "not done yet", offer that short problem first; the student may skip
+it. Later tracks build on earlier ones.
 
 **2. Show the problem.** Run `show <id>` and present it in your own short words,
 keeping the background's facts. Point to their copy of the starter code (`work/<id>.R`):
@@ -148,4 +150,5 @@ return to the lesson. Details and wording: `guide boundaries`.
 
 ## Tracks
 
-- Track 1, sequences (R basics, Biostrings): `guide track1-sequences`
+- Track 0, R basics (the R the course needs): `guide track0-r-basics`
+- Track 1, sequences (strings, files, Biostrings): `guide track1-sequences`

@@ -35,6 +35,13 @@ Current state of the compbio-tutor project, kept current after each phase.
   `Bash(compbio-tutor *)`. Students run code by asking the tutor, not in their own
   terminal. Live trial with only Skill allowed: no prompts. Windows to be confirmed
   by Ethan.
+- Track 0, R basics (Ethan, 2026-10-23: "The tutor should also teach what you need
+  to know in R in order to complete the course"): six graded problems (`r0-variables`,
+  `r0-vectors`, `r0-strings`, `r0-counting`, `r0-files`, `r0-functions`) with
+  per-student data. Each Track 1 problem lists its `r_basics`; `show` prints them as
+  solved or not done yet, and the tutor offers an unsolved one first. Index:
+  `references/track0-r-basics.md`. Data frames and plotting are still to come,
+  added as R basics when tracks 2-3 are built. Version 0.4.0.
 - Phases 5-7: not started.
 
 ## Where things are

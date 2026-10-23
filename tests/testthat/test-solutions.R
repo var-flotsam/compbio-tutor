@@ -15,7 +15,7 @@ test_that("reference solutions are graded correct on several seeds", {
       dir <- withr::local_tempdir()
       dir.create(file.path(dir, "data"))
       data <- make_dataset(p, seed)
-      writeLines(data, file.path(dir, "data", paste0(p$id, ".fasta")), sep = "")
+      writeLines(data, file.path(dir, "data", paste0(p$id, ".", p$data_ext)), sep = "")
       out <- withr::with_dir(dir, system2(
         rscript, shQuote(file.path(solutions_dir, paste0(p$id, ".R"))),
         stdout = TRUE, stderr = FALSE

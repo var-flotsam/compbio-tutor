@@ -3,8 +3,8 @@
 A Claude Code plugin that tutors high school and intro college students through
 computational biology in R, using real public data. It asks questions, gives
 hints, checks answers with deterministic graders, and explains the biology. It
-assumes no prior experience with the terminal or R and walks students through
-setup.
+assumes no prior experience with the terminal or R: it walks students through
+setup, and Track 0 ("R basics") teaches the R the course uses before it is needed.
 
 Work in progress. See `docs/design.md` for the plan and `docs/HANDOFF.md` for
 current status. The full README (sample session, eval results, limits) comes in

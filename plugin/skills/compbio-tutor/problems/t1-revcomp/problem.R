@@ -8,6 +8,7 @@ problem <- list(
   dataset = "t1.short_dna",
   answer = "t1.reverse_complement",
   starter = "starter.R",
+  r_basics = c("r0-strings", "r0-files"),
   answer_format = "the reverse complement as one DNA sequence, written 5' to 3' (letters A, C, G, T)",
   background = r"(A DNA molecule has two strands that pair base by base: A with T, and C with G.
 The strands also run in opposite directions. Each strand has a 5' end and a 3'

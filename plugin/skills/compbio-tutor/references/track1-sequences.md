@@ -1,7 +1,8 @@
 # Track 1: Sequences
 
-Prerequisites: none. Students learn R as they go: strings, vectors, `table()`,
-`paste()`, `substring()`, functions, loops, and the Biostrings package.
+Prerequisites: the Track 0 R basics each problem lists (`show` names them).
+Students new to R do Track 0 first; others can pick up a basic just in time.
+Track 1 adds `substring()`, `rev()`, `chartr()` and the Biostrings package.
 
 | id | Title | Teaches |
 |---|---|---|

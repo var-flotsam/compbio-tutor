@@ -22,6 +22,182 @@ sense_codons <- function(include_start = TRUE) {
   if (include_start) codons else setdiff(codons, start_codon)
 }
 
+# --- track 0: R basics -------------------------------------------------------
+
+# Plain-text data: one value per line.
+lines_text <- function(x) paste0(paste(x, collapse = "\n"), "\n")
+text_lines <- function(text) {
+  lines <- trimws(strsplit(text, "\n", fixed = TRUE)[[1]])
+  lines[nzchar(lines)]
+}
+
+datasets[["r0.base_counts"]] <- function(seed) {
+  set.seed(seed)
+  lines_text(sample(60:160, 4))
+}
+
+answers[["r0.g_fraction"]] <- function(text) {
+  counts <- as.numeric(text_lines(text))
+  g <- counts[3]
+  total <- sum(counts)
+  expected(round(g / total, 4), list(
+    diagnostic(
+      "percent_not_fraction", round(100 * g / total, 4),
+      "That looks like a percentage. The question asks for a fraction between 0 and 1.",
+      tolerance = 0.01
+    ),
+    diagnostic(
+      "wrong_base", round(counts[1] / total, 4),
+      "That's the share of the first number. Which line holds the G count?"
+    ),
+    diagnostic(
+      "g_over_rest", round(g / (total - g), 4),
+      "Close: check what you divided by. The total includes the G bases too."
+    )
+  ))
+}
+
+datasets[["r0.gene_lengths"]] <- function(seed) {
+  set.seed(seed)
+  # Mostly long genes, a few short ones, and two of exactly 1000 bases.
+  n_long <- rand_int(11, 14)
+  lengths <- c(sample(1001:2500, n_long), sample(300:999, 18 - n_long), 1000, 1000)
+  lines_text(sample(lengths))
+}
+
+answers[["r0.long_genes"]] <- function(text) {
+  x <- as.numeric(text_lines(text))
+  longer <- sum(x > 1000)
+  expected(longer, list(
+    diagnostic(
+      "greater_or_equal", sum(x >= 1000),
+      "That count includes genes that are exactly 1000 bases. The question asks for longer than 1000."
+    ),
+    diagnostic(
+      "counted_shorter", sum(x < 1000),
+      "That's the number of shorter genes. Check which way your comparison points."
+    ),
+    diagnostic(
+      "counted_all", length(x),
+      "That's how many genes there are in total. How can you keep only the long ones?"
+    )
+  ))
+}
+
+datasets[["r0.lower_dna"]] <- function(seed) {
+  set.seed(seed)
+  lines_text(tolower(random_dna(rand_int(30, 40))))
+}
+
+answers[["r0.substring_upper"]] <- function(text) {
+  seq <- text_lines(text)[1]
+  part <- function(from, to) toupper(substr(seq, from, to))
+  expected(part(5, 14), list(
+    diagnostic(
+      "lowercase", substr(seq, 5, 14),
+      "Right letters, but the question asks for capital letters. Is there an R function for that?"
+    ),
+    diagnostic(
+      "off_by_one_early", part(4, 13),
+      "You're one position early. In R, the first letter is position 1."
+    ),
+    diagnostic(
+      "off_by_one_late", part(6, 15),
+      "You're one position late. In R, the first letter is position 1."
+    ),
+    diagnostic(
+      "one_too_many", part(5, 15),
+      "You have 11 letters. substr(x, start, stop) includes both the start and the stop."
+    )
+  ))
+}
+
+datasets[["r0.count_dna"]] <- function(seed) {
+  set.seed(seed)
+  lines_text(random_dna(rand_int(90, 130), gc = stats::runif(1, 0.3, 0.7)))
+}
+
+answers[["r0.most_common_count"]] <- function(text) {
+  seq <- text_lines(text)[1]
+  counts <- table(strsplit(seq, "")[[1]])
+  expected(max(counts), list(
+    diagnostic(
+      "least_common", min(counts),
+      "That's how often the least common base appears. Which function gives the largest value?"
+    ),
+    diagnostic(
+      "total_length", nchar(seq),
+      "That's the length of the whole sequence. The question asks about one base."
+    )
+  ))
+}
+
+datasets[["r0.fasta_lines"]] <- function(seed) {
+  set.seed(seed)
+  to_fasta(paste0("read_", seed, " a DNA fragment"), random_dna(rand_int(250, 400)))
+}
+
+answers[["r0.total_bases"]] <- function(text) {
+  lines <- text_lines(text)
+  seq_lines <- lines[!startsWith(lines, ">")]
+  expected(sum(nchar(seq_lines)), list(
+    diagnostic(
+      "counted_header", sum(nchar(lines)),
+      "That includes the characters in the header line. Only the sequence lines hold bases."
+    ),
+    diagnostic(
+      "counted_lines", length(lines),
+      "That's the number of lines in the file. The question asks for bases."
+    ),
+    diagnostic(
+      "counted_sequence_lines", length(seq_lines),
+      "That's the number of sequence lines. How many letters are on them?"
+    ),
+    diagnostic(
+      "first_line_only", nchar(seq_lines[1]),
+      "That's the length of the first sequence line only. The sequence continues on the next lines."
+    )
+  ))
+}
+
+datasets[["r0.short_seqs"]] <- function(seed) {
+  set.seed(seed)
+  no_atg <- function(s) {
+    while (grepl("ATG", s, fixed = TRUE)) s <- sub("ATG", "ACG", s, fixed = TRUE)
+    s
+  }
+  insert_atg <- function(s) {
+    pos <- rand_int(1, nchar(s) - 1)
+    paste0(substr(s, 1, pos), "ATG", substr(s, pos + 1, nchar(s)))
+  }
+  seqs <- vapply(1:12, function(i) no_atg(random_dna(rand_int(15, 25))), "")
+  # A few sequences contain ATG (one of them twice); most don't.
+  k <- rand_int(3, 5)
+  seqs[1:k] <- vapply(seqs[1:k], insert_atg, "")
+  seqs[1] <- paste0("ATG", seqs[1])
+  lines_text(sample(seqs))
+}
+
+answers[["r0.atg_sequences"]] <- function(text) {
+  seqs <- text_lines(text)
+  has <- grepl("ATG", seqs, fixed = TRUE)
+  hits <- vapply(seqs, function(s) {
+    n <- 0
+    for (i in seq_len(max(nchar(s) - 2, 0))) if (substr(s, i, i + 2) == "ATG") n <- n + 1
+    n
+  }, numeric(1))
+  expected(sum(has), list(
+    diagnostic(
+      "counted_occurrences", sum(hits),
+      "That counts every ATG, and some sequences have more than one. The question asks how many sequences."
+    ),
+    diagnostic(
+      "counted_without", sum(!has),
+      "That's the number of sequences without ATG."
+    )
+  ))
+}
+
 # --- track 1: sequences -----------------------------------------------------
 
 datasets[["t1.gc_dna"]] <- function(seed) {

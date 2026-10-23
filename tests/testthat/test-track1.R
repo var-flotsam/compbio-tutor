@@ -93,6 +93,7 @@ test_that("random wrong answers never pass", {
     for (i in 1:50) {
       guess <- switch(p$grader$kind,
         numeric = sprintf("%.4f", stats::runif(1)),
+        exact = random_dna(10),
         set = paste(sample(c("+1", "+2", "+3", "-1", "-2", "-3"), 3), collapse = ","),
         sequence = if (p$grader$alphabet == "protein") {
           paste0("M", paste(sample(alphabets$protein[1:20], 30, TRUE), collapse = ""))

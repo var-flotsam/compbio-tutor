@@ -8,6 +8,7 @@ problem <- list(
   dataset = "t1.frames_dna",
   answer = "t1.reading_frames",
   starter = "starter.R",
+  r_basics = c("r0-functions", "r0-strings"),
   answer_format = "the frame labels with no stop codon, separated by commas (for example +2, -1)",
   background = r"(A stretch of DNA doesn't say where its codons begin. Starting at base 1, 2 or 3
 gives three different ways to cut it into codons, called reading frames. The other

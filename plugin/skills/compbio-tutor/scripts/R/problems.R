@@ -63,6 +63,12 @@ load_problem <- function(folder) {
   require_field(data, "track", is_count, pid)
   require_field(data, "order", is_count, pid)
   if (is.null(data$starter)) data$starter <- ""
+  # The student's data file is data/<id>.<data_ext>.
+  if (is.null(data$data_ext)) data$data_ext <- "fasta"
+  require_field(data, "data_ext", is_text, pid)
+  # Track 0 problems that teach the R this problem uses.
+  if (is.null(data$r_basics)) data$r_basics <- character(0)
+  if (!is.character(data$r_basics)) problem_error(sprintf("%s: r_basics must be text", pid))
   data$folder <- normalizePath(folder)
   data
 }

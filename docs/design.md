@@ -42,8 +42,9 @@ Revised the same day for those answers. Students use R in all three tracks
 
 ## 2. Who uses it, and where
 
-**Students:** ages roughly 15-20. They write **R** (no prior coding assumed in
-track 1; the skill teaches the needed R in passing). Track 3 assumes tracks 1-2 or
+**Students:** ages roughly 15-20. They write **R** (no prior coding assumed;
+Track 0 "R basics" teaches the R the course uses, and each problem lists the R
+basics it needs so the tutor can offer them just in time). Track 3 assumes tracks 1-2 or
 equivalent.
 
 **Teachers:** run a pilot with the teacher guide. Students need Claude Code; the
@@ -260,6 +261,18 @@ design. Evals include boundary probes.
 ## 9. Tracks and problem list
 
 Problem text is all original. Ids are stable; titles may change.
+
+**Track 0: R basics** (added 2026-10-23; small generated data, graded like the others)
+| id | Learning goal | Grader |
+|---|---|---|
+| r0-variables | Run a script, variables, arithmetic, `round()` | numeric |
+| r0-vectors | Vectors, comparisons, `sum()` of logicals | numeric |
+| r0-strings | `readLines()`, `nchar()`, `substr()`, `toupper()` | exact |
+| r0-counting | `strsplit()`, `table()`, `max()` | numeric |
+| r0-files | FASTA lines, `startsWith()`, `paste(collapse = "")` | numeric |
+| r0-functions | `function()`, `if`/`else`, `for`, `grepl()` | numeric |
+
+Data frames and plotting join Track 0 when tracks 2-3 are built.
 
 **Track 1: Sequences** (generated data plus one real mouse gene)
 | id | Learning goal | Grader |

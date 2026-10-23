@@ -65,8 +65,11 @@ parse_args <- function(args) {
   list(positional = positional, options = options)
 }
 
+track_names <- c("0" = "R basics", "1" = "Sequences", "2" = "Genes and genomes",
+  "3" = "Mouse genetics of insulin secretion")
+
 ensure_dataset <- function(problem, state) {
-  path <- data_path(problem$id)
+  path <- data_path(problem$id, problem$data_ext)
   if (!file.exists(path)) {
     dir.create(dirname(path), showWarnings = FALSE, recursive = TRUE)
     writeLines(make_dataset(problem, state$seed), path, sep = "")
@@ -75,11 +78,12 @@ ensure_dataset <- function(problem, state) {
 }
 
 cmd_list <- function(problems, progress) {
-  track <- 0
+  track <- -1
   for (p in problems) {
     if (p$track != track) {
       track <- p$track
-      cat(sprintf("\nTrack %d\n", track))
+      name <- track_names[as.character(track)]
+      cat(sprintf("\nTrack %d%s\n", track, if (is.na(name)) "" else paste(":", name)))
     }
     state <- progress[[p$id]]
     mark <- if (is.null(state)) "" else if (state$solved) "solved" else "started"
@@ -96,6 +100,12 @@ cmd_show <- function(problem, progress) {
   cat(sprintf("Learning goal: %s\n\n", problem$goal))
   cat(problem$background, "\n\n## Your task\n\n", problem$prompt, "\n\n", sep = "")
   cat(sprintf("Answer format: %s\n", problem$answer_format))
+  if (length(problem$r_basics) > 0) {
+    done <- vapply(problem$r_basics, function(id) isTRUE(progress[[id]]$solved), logical(1))
+    cat(sprintf("R basics this uses: %s\n", paste0(
+      problem$r_basics, ifelse(done, " (solved)", " (not done yet)"), collapse = ", "
+    )))
+  }
   cat(sprintf("Your data file: %s\n", file.path("data", basename(path))))
   if (nzchar(problem$starter)) {
     work <- work_path(problem$id)
@@ -115,7 +125,7 @@ cmd_dataset <- function(problem, progress, seed) {
     state <- new_problem_progress()
     state$seed <- seed
   }
-  path <- data_path(problem$id)
+  path <- data_path(problem$id, problem$data_ext)
   dir.create(dirname(path), showWarnings = FALSE, recursive = TRUE)
   writeLines(make_dataset(problem, state$seed), path, sep = "")
   progress[[problem$id]] <- state

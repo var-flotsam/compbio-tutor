@@ -8,6 +8,7 @@ problem <- list(
   dataset = "t1.orf_dna",
   answer = "t1.longest_orf_protein",
   starter = "starter.R",
+  r_basics = c("r0-functions", "r0-vectors"),
   answer_format = "the protein of the longest ORF in one-letter codes, without the stop",
   background = r"(An open reading frame (ORF) is a stretch that starts with ATG and runs, codon by
 codon in the same frame, to the first stop codon. Long ORFs are good candidates for

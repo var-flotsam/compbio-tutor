@@ -6,6 +6,8 @@ import os
 import re
 from pathlib import Path
 
+import pytest
+
 SKILL_ROOT = Path(__file__).resolve().parents[1] / "plugin" / "skills" / "compbio-tutor"
 
 SKILL_MD = SKILL_ROOT / "SKILL.md"
@@ -73,13 +75,16 @@ def test_long_references_have_contents() -> None:
             assert "## Contents" in text, ref.name
 
 
-def test_every_track1_problem_is_indexed() -> None:
-    index = (SKILL_ROOT / "references" / "track1-sequences.md").read_text(encoding="utf-8")
+@pytest.mark.parametrize(
+    ("prefix", "guide"), [("r0-", "track0-r-basics.md"), ("t1-", "track1-sequences.md")]
+)
+def test_every_problem_is_indexed_in_its_track_guide(prefix: str, guide: str) -> None:
+    index = (SKILL_ROOT / "references" / guide).read_text(encoding="utf-8")
     problems = [p.name for p in (SKILL_ROOT / "problems").iterdir() if p.is_dir()]
-    assert problems
-    for pid in problems:
-        if pid.startswith("t1-"):
-            assert pid in index
+    in_track = [pid for pid in problems if pid.startswith(prefix)]
+    assert in_track
+    for pid in in_track:
+        assert pid in index
 
 
 def test_tutor_command_matches_allowed_tools() -> None:

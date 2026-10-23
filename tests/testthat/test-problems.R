@@ -9,9 +9,20 @@ test_that("every problem loads with the required parts", {
 })
 
 test_that("problems are listed in teaching order", {
-  expect_equal(names(all_problems)[1:5], c(
+  expect_equal(names(all_problems)[1:11], c(
+    "r0-variables", "r0-vectors", "r0-strings", "r0-counting", "r0-files", "r0-functions",
     "t1-gc-content", "t1-revcomp", "t1-translate", "t1-reading-frames", "t1-longest-orf"
   ))
+})
+
+test_that("every R basic a problem lists is a Track 0 problem that comes earlier", {
+  ids <- names(all_problems)
+  for (p in all_problems) {
+    for (r in p$r_basics) {
+      expect_true(r %in% ids && all_problems[[r]]$track == 0L, info = paste(p$id, r))
+      expect_lt(match(r, ids), match(p$id, ids))
+    }
+  }
 })
 
 test_that("a broken problem file is reported, not crashed on", {
@@ -27,7 +38,7 @@ test_that("a broken problem file is reported, not crashed on", {
 test_that("starter code reads the student's data file and has blanks to fill", {
   for (p in all_problems) {
     starter <- paste(readLines(file.path(p$folder, p$starter)), collapse = "\n")
-    expect_match(starter, sprintf("data/%s.fasta", p$id), fixed = TRUE, info = p$id)
+    expect_match(starter, sprintf("data/%s.%s", p$id, p$data_ext), fixed = TRUE, info = p$id)
     expect_match(starter, "___", fixed = TRUE, info = p$id)
   }
 })

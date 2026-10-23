@@ -45,7 +45,7 @@ state_dir <- function() course_path(".compbio-tutor")
 
 # The student's own copy of a problem's starter code, and their data file.
 work_path <- function(pid) course_path("work", paste0(pid, ".R"))
-data_path <- function(pid) course_path("data", paste0(pid, ".fasta"))
+data_path <- function(pid, ext = "fasta") course_path("data", paste0(pid, ".", ext))
 
 new_problem_progress <- function() {
   list(
